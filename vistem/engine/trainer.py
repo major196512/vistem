@@ -4,8 +4,9 @@ from torch.nn.parallel import DistributedDataParallel
 from vistem.utils import setup_logger, seed_all_rng
 from vistem import dist
 
+from vistem.loader import build_train_loader
+
 # from vistem.modeling import build_model
-# from vistem.data import build_train_loader
 # from vistem.solver import build_optimizer, build_lr_scheduler
 # from vistem.checkpointer import Checkpointer
 
@@ -16,12 +17,14 @@ class Trainer:
         seed_all_rng(self._seed)
         
         self._logger = setup_logger()
-        self._logger.debug(f'Config File : \n{cfg}')        
+        self._logger.debug(f'Config File : \n{cfg}')
+
+        self.train_loader = build_train_loader(cfg)
 
         # self.weight_path = cfg.MODEL.WEIGHTS
 
         # self.model = build_model(cfg)
-        # self.train_loader = build_train_loader(cfg)
+        
         # self.optimizer = build_optimizer(cfg, self.model)
         # self.scheduler = build_lr_scheduler(cfg, self.optimizer)
 

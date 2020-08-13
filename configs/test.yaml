@@ -3,3 +3,6 @@ BASE_CFG : './configs/base.yaml'
 LOADER :
   TRAIN_SHUFFLE : True
   NUM_WORKERS : 4
+
+SOLVER :
+  BATCH_SIZE : 2
