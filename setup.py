@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 import torch
 
 torch_ver = [int(x) for x in torch.__version__.split(".")[:2]]
-assert torch_ver >= [1, 5], "Requires PyTorch >= 1.5"
+assert torch_ver >= [1, 0], "Requires PyTorch >= 1.0"
 
 
 setup(

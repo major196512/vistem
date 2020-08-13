@@ -1,14 +1,12 @@
 from vistem.dist import get_rank
 from vistem.config import get_cfg
-# from vistem.engine import Trainer
 from vistem.utils import setup_logger, find_caller
-from vistem.engine import launch, default_argument_parser
+from vistem.engine import launch, Trainer, default_argument_parser
 
 def main(args):
     cfg = get_cfg(args.config_file)
-    print(cfg)
 
-    # trainer = Trainer(cfg)
+    trainer = Trainer(cfg)
     # trainer.resume_or_load()
     # trainer.train()
 
