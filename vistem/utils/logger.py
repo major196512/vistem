@@ -6,7 +6,7 @@ import time
 from termcolor import colored
 
 from vistem.dist.get_info import get_rank
-from utils import find_caller
+from .caller import find_caller
 
 __all__ = ['setup_logger']
 
