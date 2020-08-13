@@ -4,7 +4,7 @@ import io
 import time
 import contextlib
 
-from vistem.data import MetadataCatalog, DatasetCatalog
+from vistem.loader import MetadataCatalog, DatasetCatalog
 
 from vistem.utils.logger import setup_logger
 from vistem.structures import BoxMode

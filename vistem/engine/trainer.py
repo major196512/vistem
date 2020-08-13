@@ -4,7 +4,7 @@ from torch.nn.parallel import DistributedDataParallel
 from vistem.utils import setup_logger, seed_all_rng
 from vistem import dist
 
-from vistem.data import build_train_loader
+from vistem.loader import build_train_loader
 
 # from vistem.modeling import build_model
 # from vistem.solver import build_optimizer, build_lr_scheduler

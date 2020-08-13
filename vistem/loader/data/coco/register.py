@@ -1,6 +1,6 @@
 import os
 
-from vistem.data import MetadataCatalog, DatasetCatalog
+from vistem.loader import MetadataCatalog, DatasetCatalog
 from .load_json import load_coco_json
 from .meta import get_coco_instances_meta
 

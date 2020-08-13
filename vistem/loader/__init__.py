@@ -1,6 +1,6 @@
 from .catalog import DatasetCatalog, MetadataCatalog
 
-from . import register
+from . import data
 
 # from .loaders import *
 # from .sampler import *
