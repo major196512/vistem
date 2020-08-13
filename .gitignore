@@ -1,0 +1,7 @@
+.vscode
+
+__pycache__/
+/data
+/pretrained
+/vistem.egg-info
+/bak_vistem
