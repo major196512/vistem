@@ -11,12 +11,12 @@ from vistem import dist
 
 class Trainer:
     def __init__(self, cfg):
-        self._logger = setup_logger()
-        self._logger.debug(f'Config File : \n{cfg}')
-        
+        if cfg.SEED : cfg.SEED = dist.shared_random_seed()
         self._seed = cfg.SEED
-        if self._seed == -1 : self.seed = dist.shared_random_seed()
-        seed_all_rng(self.seed)
+        seed_all_rng(self._seed)
+        
+        self._logger = setup_logger()
+        self._logger.debug(f'Config File : \n{cfg}')        
 
         # self.weight_path = cfg.MODEL.WEIGHTS
 
