@@ -1,11 +1,35 @@
+import random
 import torch
 from torch.utils.data import Dataset
 
-import random
-
 from vistem.utils.logger import setup_logger
 
-__all__ = ['MapDataset']
+__all__ = ['ListDataset', 'DictionaryDataset', 'MapDataset']
+
+class ListDataset(Dataset):
+    def __init__(self, cfg, data):
+        self._data = data
+
+    def __len__(self):
+        return len(self._data)
+
+    def __getitem__(self, idx):
+        return self._data[idx]
+
+
+class DictionaryDataset(Dataset):
+    def __init__(self, cfg, data):
+        self._data = data
+        self._key = list(data.keys())
+
+    def __len__(self):
+        return len(self._data[self._key[0]])
+
+    def __getitem__(self, idx):
+        ret_dict = dict()
+        for key in self._key:
+            ret_dict[key] = self._data[key][idx]
+        return ret_dict
 
 class MapDataset(Dataset):
     def __init__(self, dataset, map_func):
