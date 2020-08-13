@@ -5,6 +5,8 @@ import random
 
 from vistem.utils.logger import setup_logger
 
+__all__ = ['MapDataset']
+
 class MapDataset(Dataset):
     def __init__(self, dataset, map_func):
         self._dataset = dataset

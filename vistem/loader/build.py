@@ -6,7 +6,8 @@ from vistem.utils.env import seed_all_rng
 from vistem import dist
 
 from .catalog import DatasetCatalog, MetadataCatalog
-from .dataset import ListDataset
+from .dataset import ListDataset, MapDataset
+from .mapper import DatasetMapper
 from .sampler import IterSampler
 
 __all__ = ['build_train_loader']
@@ -20,8 +21,8 @@ def build_train_loader(cfg):
     data = list(itertools.chain.from_iterable(data))
 
     dataset = ListDataset(cfg, data)
-    # mapper = DatasetMapper(cfg, is_train=True)
-    # dataset = MapDataset(dataset, mapper)
+    mapper = DatasetMapper(cfg, is_train=True)
+    dataset = MapDataset(dataset, mapper)
 
     sampler = IterSampler(cfg, dataset)
     batch_sampler = torch.utils.data.sampler.BatchSampler(
