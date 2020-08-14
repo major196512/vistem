@@ -6,8 +6,8 @@ from vistem import dist
 
 from vistem.loader import build_train_loader
 
-# from vistem.modeling import build_model
-# from vistem.solver import build_optimizer, build_lr_scheduler
+from vistem.modeling import build_model
+from vistem.solver import build_optimizer, build_lr_scheduler
 # from vistem.checkpointer import Checkpointer
 
 class Trainer:
@@ -23,15 +23,15 @@ class Trainer:
 
         # self.weight_path = cfg.MODEL.WEIGHTS
 
-        # self.model = build_model(cfg)
+        self.model = build_model(cfg)
+        if dist.is_main_process():
+            self._logger.debug(f"Model Structure\n{self.model}")
         
-        # self.optimizer = build_optimizer(cfg, self.model)
-        # self.scheduler = build_lr_scheduler(cfg, self.optimizer)
-
-        # if dist.is_main_process():
-        #     self._logger.debug(f"Model Structure\n{self.model}")
-        # if dist.get_world_size() > 1:
-        #     self.model = DistributedDataParallel(self.model, device_ids=[dist.get_local_rank()], broadcast_buffers=False)
+        self.optimizer = build_optimizer(cfg, self.model)
+        self.scheduler = build_lr_scheduler(cfg, self.optimizer)
+        
+        if dist.get_world_size() > 1:
+            self.model = DistributedDataParallel(self.model, device_ids=[dist.get_local_rank()], broadcast_buffers=False)
 
         # self.checkpointer = Checkpointer(
         #     self.model,

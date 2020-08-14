@@ -1,8 +1,17 @@
 BASE_CFG : './configs/base.yaml'
 
 LOADER :
+  TRAIN_DATASET : 'coco_2017_val'
   TRAIN_SHUFFLE : True
   NUM_WORKERS : 4
 
+MODEL :
+  RESNETS : 
+    OUT_FEATURES : ['res3', 'res4', 'res5']
+
 SOLVER :
+  OPTIMIZER : 'SGD'
+  MAX_ITER : 90000
   BATCH_SIZE : 2
+  BASE_LR : 0.01
+  STEPS : (60000, 80000)
