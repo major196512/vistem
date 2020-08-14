@@ -6,7 +6,7 @@ from vistem import dist
 
 from vistem.loader import build_train_loader
 
-# from vistem.modeling import build_model
+from vistem.modeling import build_model
 # from vistem.solver import build_optimizer, build_lr_scheduler
 # from vistem.checkpointer import Checkpointer
 
@@ -23,7 +23,7 @@ class Trainer:
 
         # self.weight_path = cfg.MODEL.WEIGHTS
 
-        # self.model = build_model(cfg)
+        self.model = build_model(cfg)
         
         # self.optimizer = build_optimizer(cfg, self.model)
         # self.scheduler = build_lr_scheduler(cfg, self.optimizer)
