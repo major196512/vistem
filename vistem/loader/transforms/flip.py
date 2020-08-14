@@ -1,6 +1,6 @@
 import numpy as np
 
-from .base import Transform, TransformGen, NoOpTransform
+from .transform import Transform, TransformGen, NoOpTransform
 
 class HFlipTransform(Transform):
     def __init__(self, width: int):

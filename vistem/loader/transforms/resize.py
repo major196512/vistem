@@ -2,7 +2,7 @@ import sys
 import numpy as np
 from PIL import Image
 
-from .base import Transform, TransformGen, NoOpTransform
+from .transform import Transform, TransformGen, NoOpTransform
 
 class ResizeTransform(Transform):
     def __init__(self, h, w, new_h, new_w, interp):
