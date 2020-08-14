@@ -1,4 +1,7 @@
-from .build import build_transform
+from vistem.utils.registry import Registry
+TRANSFORM_REGISTRY = Registry("TRANSFORM")
 
-from .flip import RandomFlip
-from .resize import Resize, ResizeShortestEdge
+from .transform import Transform, TransformGen, NoOpTransform
+from . import flip, resize
+
+from .build import build_transform_gen, apply_transform

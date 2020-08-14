@@ -1,6 +1,7 @@
 import numpy as np
+from vistem.loader.transforms import Transform
 
-from .transform import Transform, TransformGen, NoOpTransform
+__all__ = ['HFlipTransform']
 
 class HFlipTransform(Transform):
     def __init__(self, width: int):
@@ -18,17 +19,3 @@ class HFlipTransform(Transform):
     def apply_coords(self, coords: np.ndarray) -> np.ndarray:
         coords[:, 0] = self.width - coords[:, 0]
         return coords
-
-class RandomFlip(TransformGen):
-    def __init__(self, prob=0.5):
-        horiz, vert = True, False
-        super().__init__()
-        self._init(locals())
-
-    def get_transform(self, img):
-        h, w = img.shape[:2]
-        do = self._rand_range() < self.prob
-        if do:
-            return HFlipTransform(w)
-        else:
-            return NoOpTransform()

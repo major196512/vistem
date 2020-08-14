@@ -1,8 +1,18 @@
 import numpy as np
 
+from vistem.loader.transforms import TRANSFORM_REGISTRY
 from .transform import Transform, TransformGen, TransformList
 
-def build_transform(transform_gens, img):
+__all__ = ['build_transform_gen', 'apply_transform']
+
+def build_transform_gen(cfg, is_train):
+    tfm_gens = []
+    for tfm_gen in cfg.INPUT.TRANSFORM:
+        tfm_gens.append(TRANSFORM_REGISTRY.get(tfm_gen)(cfg, is_train))
+
+    return tfm_gens
+
+def apply_transform(transform_gens, img):
     for g in transform_gens:
         assert isinstance(g, TransformGen), g
 

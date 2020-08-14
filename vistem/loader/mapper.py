@@ -18,45 +18,23 @@ class DatasetMapper:
         self.img_format = cfg.INPUT.FORMAT
         self.exif_transpose = cfg.INPUT.EXIF
 
-        self.tfm_gens = self.build_transform_gen(cfg, is_train)
+        self.tfm_gens = T.build_transform_gen(cfg, is_train)
+        self._logger.info(f"TransformGens(Training={is_train}) : {str(self.tfm_gens)}")
 
-        self.crop_gen = None
+        self.is_train = is_train
+
         # if cfg.INPUT.CROP.ENABLED and is_train:
             # self.crop_gen = T.RandomCrop(cfg.INPUT.CROP.TYPE, cfg.INPUT.CROP.SIZE)
             # self._logger.info(f"CropGen used in training: {str(self.crop_gen)}")
             # pass
         # else:
-        
-        self.is_train = is_train
-
-    def build_transform_gen(self, cfg, is_train):
-        if is_train:
-            sample_style = cfg.INPUT.MIN_SIZE_TRAIN_SAMPLING
-            min_size = cfg.INPUT.MIN_SIZE_TRAIN
-            max_size = cfg.INPUT.MAX_SIZE_TRAIN
-        else:
-            sample_style = "choice"
-            min_size = cfg.INPUT.MIN_SIZE_TEST
-            max_size = cfg.INPUT.MAX_SIZE_TEST
-
-        if sample_style == "range":
-            assert len(min_size) == 2, f"more than 2 ({len(min_size)}) min_size(s) are provided for ranges"
-
-        tfm_gens = []
-        tfm_gens.append(T.ResizeShortestEdge(min_size, max_size, sample_style))
-        if is_train:
-            tfm_gens.append(T.RandomFlip())
-            self._logger.info("TransformGens used in training: " + str(tfm_gens))
-
-        return tfm_gens
-        
 
     def __call__(self, dataset_dict):
         dataset_dict = copy.deepcopy(dataset_dict)
         image = self.read_image(dataset_dict["file_name"])
         self.check_image_size(dataset_dict, image)
 
-        image, transforms = T.build_transform(self.tfm_gens, image)
+        image, transforms = T.apply_transform(self.tfm_gens, image)
         image_shape = image.shape[:2]
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
 

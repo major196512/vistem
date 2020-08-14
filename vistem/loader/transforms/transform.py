@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, List, Optional
 import pprint
 
+__all__ = ['Transform', 'TransformGen', 'NoOpTransform', 'TransformList']
 class Transform(metaclass=ABCMeta):
     def _set_attributes(self, params: Optional[List[Any]] = None) -> None:
         if params:
@@ -38,6 +39,10 @@ class TransformGen(metaclass=ABCMeta):
                     setattr(self, k, v)
 
     @abstractmethod
+    def init_local(self):
+        pass
+
+    @abstractmethod
     def get_transform(self, img):
         pass
 
@@ -50,7 +55,7 @@ class TransformGen(metaclass=ABCMeta):
 
     def __repr__(self):
         try:
-            sig = inspect.signature(self.__init__)
+            sig = inspect.signature(self.init_local)
             classname = type(self).__name__
             argstr = []
             for name, param in sig.parameters.items():
@@ -61,7 +66,7 @@ class TransformGen(metaclass=ABCMeta):
                 
                 attr = getattr(self, name)
                 default = param.default
-                if default is attr : continue
+                if default == attr : continue
 
                 argstr.append(f"{name}={pprint.pformat(attr)}")
 
@@ -86,7 +91,7 @@ class NoOpTransform(Transform):
         if name.startswith("apply_"):
             return lambda x: x
         raise AttributeError(f"NoOpTransform object has no attribute {name}")
-
+    
 class TransformList:
     def __init__(self, transforms: list):
         super().__init__()
