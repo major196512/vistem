@@ -80,9 +80,10 @@ class RetinaNet(nn.Module):
         self.max_detections_per_image = cfg.TEST.DETECTIONS_PER_IMAGE
         
         self.backbone = build_backbone(cfg)
+        for feat in self.in_features:
+            assert feat in self.backbone.out_features, f"'{feat}' is not in backbone({self.backbone.out_features})"
 
         backbone_shape = self.backbone.output_shape()
-        import pdb; pdb.set_trace()
         feature_shapes = [backbone_shape[f] for f in self.in_features]
         self.head = RetinaNetHead(cfg, feature_shapes)
         self.anchor_generator = build_anchor_generator(cfg, feature_shapes)
