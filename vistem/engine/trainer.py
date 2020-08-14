@@ -24,14 +24,14 @@ class Trainer:
         # self.weight_path = cfg.MODEL.WEIGHTS
 
         self.model = build_model(cfg)
+        if dist.is_main_process():
+            self._logger.debug(f"Model Structure\n{self.model}")
         
         # self.optimizer = build_optimizer(cfg, self.model)
         # self.scheduler = build_lr_scheduler(cfg, self.optimizer)
-
-        if dist.is_main_process():
-            self._logger.debug(f"Model Structure\n{self.model}")
-        # if dist.get_world_size() > 1:
-        #     self.model = DistributedDataParallel(self.model, device_ids=[dist.get_local_rank()], broadcast_buffers=False)
+        
+        if dist.get_world_size() > 1:
+            self.model = DistributedDataParallel(self.model, device_ids=[dist.get_local_rank()], broadcast_buffers=False)
 
         # self.checkpointer = Checkpointer(
         #     self.model,
