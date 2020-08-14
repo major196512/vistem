@@ -6,3 +6,7 @@ LOADER :
 
 SOLVER :
   BATCH_SIZE : 2
+
+MODEL :
+  RESNETS : 
+    OUT_FEATURES : ['res3', 'res4', 'res5']
