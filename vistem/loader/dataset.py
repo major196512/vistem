@@ -40,6 +40,8 @@ class MapDataset(Dataset):
         self._rng = random.Random(42)
         self._fallback_candidates = set(range(len(dataset)))
 
+        self.logger = setup_logger()
+
     def __len__(self):
         return len(self._dataset)
 
@@ -59,5 +61,4 @@ class MapDataset(Dataset):
             cur_idx = self._rng.sample(self._fallback_candidates, k=1)[0]
 
             if retry_count >= 3:
-                logger = setup_logger()
-                logger.warning(f"Failed to apply `_map_func` for idx: {idx}, retry count: {retry_count}")
+                self.logger.warning(f"Failed to apply `_map_func` for idx: {idx}, retry count: {retry_count}")

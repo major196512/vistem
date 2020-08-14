@@ -15,18 +15,40 @@ class DatasetMapper:
     def __init__(self, cfg, is_train=True):
         self._logger = setup_logger()
 
+        self.img_format = cfg.INPUT.FORMAT
+        self.exif_transpose = cfg.INPUT.EXIF
+
+        self.tfm_gens = self.build_transform_gen(cfg, is_train)
+
+        self.crop_gen = None
         # if cfg.INPUT.CROP.ENABLED and is_train:
             # self.crop_gen = T.RandomCrop(cfg.INPUT.CROP.TYPE, cfg.INPUT.CROP.SIZE)
             # self._logger.info(f"CropGen used in training: {str(self.crop_gen)}")
             # pass
         # else:
-        self.crop_gen = None
-
-        self.tfm_gens = self.build_transform_gen(cfg, is_train)
-
-        self.img_format = cfg.INPUT.FORMAT
+        
         self.is_train = is_train
 
+    def build_transform_gen(self, cfg, is_train):
+        if is_train:
+            sample_style = cfg.INPUT.MIN_SIZE_TRAIN_SAMPLING
+            min_size = cfg.INPUT.MIN_SIZE_TRAIN
+            max_size = cfg.INPUT.MAX_SIZE_TRAIN
+        else:
+            sample_style = "choice"
+            min_size = cfg.INPUT.MIN_SIZE_TEST
+            max_size = cfg.INPUT.MAX_SIZE_TEST
+
+        if sample_style == "range":
+            assert len(min_size) == 2, f"more than 2 ({len(min_size)}) min_size(s) are provided for ranges"
+
+        tfm_gens = []
+        tfm_gens.append(T.ResizeShortestEdge(min_size, max_size, sample_style))
+        if is_train:
+            tfm_gens.append(T.RandomFlip())
+            self._logger.info("TransformGens used in training: " + str(tfm_gens))
+
+        return tfm_gens
         
 
     def __call__(self, dataset_dict):
@@ -34,7 +56,7 @@ class DatasetMapper:
         image = self.read_image(dataset_dict["file_name"])
         self.check_image_size(dataset_dict, image)
 
-        image, transforms = T.apply_transform_gens(self.tfm_gens, image)
+        image, transforms = T.build_transform(self.tfm_gens, image)
         image_shape = image.shape[:2]
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
 
@@ -56,8 +78,7 @@ class DatasetMapper:
 
     def read_image(self, file_name):
         image = Image.open(file_name)
-
-        image = ImageOps.exif_transpose(image)
+        if self.exif_transpose : image = ImageOps.exif_transpose(image)
 
         if self.img_format is not None:
             conversion_format = self.img_format
@@ -86,26 +107,6 @@ class DatasetMapper:
         if "height" not in dataset_dict:
             dataset_dict["height"] = image.shape[0]
 
-    def build_transform_gen(self, cfg, is_train):
-        if is_train:
-            min_size = cfg.INPUT.MIN_SIZE_TRAIN
-            max_size = cfg.INPUT.MAX_SIZE_TRAIN
-            sample_style = cfg.INPUT.MIN_SIZE_TRAIN_SAMPLING
-        else:
-            min_size = cfg.INPUT.MIN_SIZE_TEST
-            max_size = cfg.INPUT.MAX_SIZE_TEST
-            sample_style = "choice"
-
-        if sample_style == "range":
-            assert len(min_size) == 2, f"more than 2 ({len(min_size)}) min_size(s) are provided for ranges"
-
-        tfm_gens = []
-        tfm_gens.append(T.ResizeShortestEdge(min_size, max_size, sample_style))
-        if is_train:
-            tfm_gens.append(T.RandomFlip())
-            self._logger.info("TransformGens used in training: " + str(tfm_gens))
-
-        return tfm_gens
 
     def transform_instance_annotations(self, annotation, transforms):
         bbox = BoxMode.convert(annotation["bbox"], annotation["bbox_mode"], BoxMode.XYXY_ABS)
