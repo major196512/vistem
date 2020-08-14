@@ -6,7 +6,7 @@ from PIL import Image, ImageOps
 from vistem.utils.logger import setup_logger
 from vistem.structures import Boxes, BoxMode, Instances
 
-from . import transforms as T
+from .transforms import build_transform_gen, apply_transform
 
 __all__ = ["DatasetMapper"]
 
@@ -18,7 +18,7 @@ class DatasetMapper:
         self.img_format = cfg.INPUT.FORMAT
         self.exif_transpose = cfg.INPUT.EXIF
 
-        self.tfm_gens = T.build_transform_gen(cfg, is_train)
+        self.tfm_gens = build_transform_gen(cfg, is_train)
         self._logger.info(f"TransformGens(Training={is_train}) : {str(self.tfm_gens)}")
 
         self.is_train = is_train
@@ -34,7 +34,7 @@ class DatasetMapper:
         image = self.read_image(dataset_dict["file_name"])
         self.check_image_size(dataset_dict, image)
 
-        image, transforms = T.apply_transform(self.tfm_gens, image)
+        image, transforms = apply_transform(self.tfm_gens, image)
         image_shape = image.shape[:2]
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
 
