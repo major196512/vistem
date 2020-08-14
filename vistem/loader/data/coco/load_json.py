@@ -17,7 +17,7 @@ def load_coco_json(json_file, image_root, dataset_name, extra_annotation_keys=No
     with contextlib.redirect_stdout(io.StringIO()) : coco_api = COCO(json_file)
     end_time = time.time()
     if end_time - start_time > 1:
-        logger.debug(f"Loading {json_file} takes {end_time - start_time:.2f} seconds.")
+        logger.info(f"Loading {json_file} takes {end_time - start_time:.2f} seconds.")
 
     meta = MetadataCatalog.get(dataset_name)
 
@@ -36,7 +36,7 @@ def load_coco_json(json_file, image_root, dataset_name, extra_annotation_keys=No
     anns = [coco_api.imgToAnns[img_id] for img_id in img_ids]
 
     imgs_anns = list(zip(imgs, anns))
-    logger.debug(f"Loaded {len(imgs_anns)} images in COCO format from {json_file}")
+    logger.info(f"Loaded {len(imgs_anns)} images in COCO format from {json_file}")
 
     dataset_dicts = []
 
