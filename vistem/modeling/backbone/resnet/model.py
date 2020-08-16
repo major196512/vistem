@@ -12,7 +12,7 @@ from vistem.structures import ShapeSpec
 __all__ = ['ResNetBase']
 
 class ResNetBase(Backbone):
-    def __init__(self, stem, stages, num_classes=0, out_features=None):
+    def __init__(self, stem, stages, num_classes=None, out_features=None):
         super(ResNetBase, self).__init__()
         self.stem = stem
         current_stride = self.stem.stride
@@ -35,7 +35,7 @@ class ResNetBase(Backbone):
             self._out_feature_channels[name] = blocks[-1].out_channels
 
         self.num_classes = num_classes
-        if num_classes > 0:
+        if num_classes is not None:
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
             self.linear = nn.Linear(curr_channels, num_classes)
 
