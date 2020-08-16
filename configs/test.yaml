@@ -1,11 +1,17 @@
 BASE_CFG : './configs/base.yaml'
 
 LOADER :
-  TRAIN_DATASET : 'coco_2017_val'
+  TRAIN_DATASET : 'coco_2017_train'
+  TEST_DATASET : 'coco_2017_val'
   TRAIN_SHUFFLE : True
   NUM_WORKERS : 4
 
 MODEL :
+  WEIGHTS : './pretrained_weights/retinanet_r50_3x.pth'
+  ANCHOR_GENERATOR:
+    NAME : 'DefaultAnchorGenerator'
+    SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"] 
+    ASPECT_RATIOS : [[0.5, 1.0, 2.0]]
   RESNETS : 
     OUT_FEATURES : ['res3', 'res4', 'res5']
 
