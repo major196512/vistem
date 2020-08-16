@@ -28,7 +28,7 @@ def evaluator(model, data_loader, evaluators):
             timer.pause()
             evaluators.process(inputs, outputs)
 
-            if timer.total_seconds() > 5:
+            if timer.total_seconds() > 10:
                 total_compute_time += timer.seconds()
                 total_time += timer.total_seconds()
                 timer.reset(pause=True)
