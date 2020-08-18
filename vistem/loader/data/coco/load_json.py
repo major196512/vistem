@@ -13,7 +13,7 @@ __all__ = ['load_coco_json']
 
 _logger = setup_logger(__name__)
 
-def load_coco_json(json_file, image_root, dataset_name, extra_annotation_keys=None):    
+def load_coco_json(json_file, image_root, dataset_name, filter=True, extra_annotation_keys=None):    
     start_time = time.time()
     with contextlib.redirect_stdout(io.StringIO()) : coco_api = COCO(json_file)
     end_time = time.time()
@@ -63,4 +63,20 @@ def load_coco_json(json_file, image_root, dataset_name, extra_annotation_keys=No
         record["annotations"] = objs
         dataset_dicts.append(record)
 
+    if filter : dataset_dicts = filter_images_with_only_crowd_annotations(dataset_dicts)
+
+    return dataset_dicts
+
+def filter_images_with_only_crowd_annotations(dataset_dicts):
+    num_before = len(dataset_dicts)
+
+    def valid(anns):
+        for ann in anns:
+            if ann.get("iscrowd", 0) == 0:
+                return True
+        return False
+
+    dataset_dicts = [x for x in dataset_dicts if valid(x["annotations"])]
+    num_after = len(dataset_dicts)
+    _logger.info(f"Removed {num_before - num_after} images with no usable annotations. {num_after} images left.")
     return dataset_dicts

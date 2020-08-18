@@ -104,9 +104,9 @@ class DatasetMapper:
 
         return target
 
-    def filter_empty_instances(self, instances):
+    def filter_empty_instances(self, instances, box_threshold=1e-5):
         r = []
-        r.append(instances.gt_boxes.nonempty())
+        r.append(instances.gt_boxes.nonempty(threshold=box_threshold))
 
         if not r:
             return instances
