@@ -6,3 +6,4 @@ __pycache__/
 /vistem.egg-info
 /bak_vistem
 /pretrained_weights
+/outputs/
