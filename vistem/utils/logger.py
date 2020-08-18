@@ -36,7 +36,7 @@ class _ColorfulFormatter(logging.Formatter):
 def setup_logger(name=None, output=None):
     caller = find_caller()['caller']
     logger = logging.getLogger(caller)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     logger.propagate = False
 
     # stdout logging: master only
