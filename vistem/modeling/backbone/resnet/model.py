@@ -35,7 +35,7 @@ class ResNetBase(Backbone):
             self._out_feature_channels[name] = blocks[-1].out_channels
 
         self.num_classes = num_classes
-        if num_classes is not None:
+        if num_classes and num_classes > 0:
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
             self.linear = nn.Linear(curr_channels, num_classes)
 
@@ -65,7 +65,7 @@ class ResNetBase(Backbone):
             if name in self._out_features:
                 outputs[name] = x
 
-        if self.num_classes is not None:
+        if hasattr(self, 'avgpool'):
             x = self.avgpool(x)
             x = self.linear(x.reshape(x.shape[0], -1))
             if "linear" in self._out_features:
