@@ -1,7 +1,7 @@
 from tabulate import tabulate
 
-def create_small_table(small_dict):
-    keys, values = tuple(zip(*small_dict.items()))
+def create_small_table(data):
+    keys, values = tuple(zip(*data.items()))
     table = tabulate(
         [values],
         headers=keys,
@@ -10,4 +10,15 @@ def create_small_table(small_dict):
         stralign="center",
         numalign="center",
     )
+    return table
+
+def create_multi_column_table(data, num_column, headers = [], align='center'):
+    table = tabulate(
+            results_2d,
+            tablefmt="pipe",
+            floatfmt=".3f",
+            headers=headers * num_column,
+            numalign=align,
+        )
+
     return table
