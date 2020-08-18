@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 import io
+import os
+import json
 import copy
 import contextlib
 import itertools
@@ -47,7 +49,6 @@ class COCOEvaluator(Evaluator):
         for input, output in zip(inputs, outputs):
             prediction = {"image_id": input["image_id"]}
 
-            # TODO this is ugly
             if "instances" in output:
                 instances = output["instances"].to(self._cpu_device)
                 prediction["instances"] = instances_to_coco_json(instances, input["image_id"])
@@ -69,11 +70,11 @@ class COCOEvaluator(Evaluator):
             self._logger.warning("[COCOEvaluator] Did not receive valid predictions.")
             return {}
 
-        # if self._output_dir:
-        #     PathManager.mkdirs(self._output_dir)
-        #     file_path = os.path.join(self._output_dir, "instances_predictions.pth")
-        #     with PathManager.open(file_path, "wb") as f:
-        #         torch.save(predictions, f)
+        if self._output_dir:
+            if not  os.path.isdir(self._output_dir) : os.makedirs(self._output_dir)
+            file_path = os.path.join(self._output_dir, "instances_predictions.pth")
+            with open(file_path, "wb") as f:
+                torch.save(predictions, f)
 
         self._results = OrderedDict()
         self._eval_predictions(predictions)
@@ -86,9 +87,9 @@ class COCOEvaluator(Evaluator):
         coco_results = list(itertools.chain(*[x["instances"] for x in predictions]))
 
         # unmap the category ids for COCO
-        if hasattr(self._metadata, "thing_dataset_id_to_contiguous_id"):
+        if hasattr(self._metadata, "dataset_id_to_contiguous_id"):
             reverse_id_mapping = {
-                v: k for k, v in self._metadata.thing_dataset_id_to_contiguous_id.items()
+                v: k for k, v in self._metadata.dataset_id_to_contiguous_id.items()
             }
             for result in coco_results:
                 category_id = result["category_id"]
@@ -99,12 +100,12 @@ class COCOEvaluator(Evaluator):
                 )
                 result["category_id"] = reverse_id_mapping[category_id]
 
-        # if self._output_dir:
-        #     file_path = os.path.join(self._output_dir, "coco_instances_results.json")
-        #     self._logger.info("Saving results to {}".format(file_path))
-        #     with PathManager.open(file_path, "w") as f:
-        #         f.write(json.dumps(coco_results))
-        #         f.flush()
+        if self._output_dir:
+            file_path = os.path.join(self._output_dir, "coco_instances_results.json")
+            self._logger.info("Saving results to {}".format(file_path))
+            with open(file_path, "w") as f:
+                f.write(json.dumps(coco_results))
+                f.flush()
 
         if not self._do_evaluation:
             self._logger.info("Annotations are not available for evaluation.")
@@ -123,7 +124,7 @@ class COCOEvaluator(Evaluator):
             )
 
             res = self._derive_coco_results(
-                coco_eval, task, class_names=self._metadata.get("thing_classes")
+                coco_eval, task, class_names=self._metadata.get("category_names")
             )
             self._results[task] = res
 
