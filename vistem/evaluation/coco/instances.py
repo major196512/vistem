@@ -141,11 +141,12 @@ class COCOInstanceEvaluator:
             ap = np.mean(precision) if precision.size else float("nan")
             category_results.append((name, float(ap * 100)))
 
+        headers=["category", "AP"]
         N_COLS = min(3, len(class_names))
         results_flatten = list(itertools.chain(*category_results))
-        results_flatten = itertools.zip_longest(*[results_flatten[i::N_COLS] for i in range(N_COLS)])
+        results_flatten = itertools.zip_longest(*[results_flatten[i::N_COLS*len(headers)] for i in range(N_COLS*len(headers))])
 
-        table = create_multi_column_table(results_flatten, 3, headers=["category", "AP"], align='left')
+        table = create_multi_column_table(results_flatten, N_COLS, headers=["category", "AP"], align='left')
         self._logger.info(f"Per-category {iou_type} AP: \n{table}")
         
         results.update({f"AP-{name}": ap for name, ap in category_results})
