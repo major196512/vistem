@@ -14,6 +14,7 @@ MODEL :
     ASPECT_RATIOS : [[0.5, 1.0, 2.0]]
   RESNETS : 
     OUT_FEATURES : ['res3', 'res4', 'res5']
+    NORM : 'FrozenBN'
 
 SOLVER :
   OPTIMIZER : 'SGD'

@@ -1,4 +1,5 @@
 import torch.nn as nn
+from .frozen_bn import FrozenBatchNorm2d
 
 def get_norm(norm, out_channels):
     if isinstance(norm, str):
@@ -7,7 +8,7 @@ def get_norm(norm, out_channels):
         norm = {
             "BN": nn.BatchNorm2d,
             # "SyncBN": NaiveSyncBatchNorm,
-            # "FrozenBN": FrozenBatchNorm2d,
+            "FrozenBN": FrozenBatchNorm2d,
             "GN": lambda channels: nn.GroupNorm(32, channels),
             "nnSyncBN": nn.SyncBatchNorm,  # keep for debugging
         }[norm]
