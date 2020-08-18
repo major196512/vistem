@@ -18,9 +18,9 @@ def batched_nms(
 
     result_mask = scores.new_zeros(scores.size(), dtype=torch.bool)
     for id in torch.jit.annotate(List[int], torch.unique(idxs).cpu().tolist()):
-        mask = (idxs == id).nonzero().view(-1)
+        mask = (idxs == id).nonzero(as_tuple=False).view(-1)
         keep = nms(boxes[mask], scores[mask], iou_threshold)
         result_mask[mask[keep]] = True
-    keep = result_mask.nonzero().view(-1)
+    keep = result_mask.nonzero(as_tuple=False).view(-1)
     keep = keep[scores[keep].argsort(descending=True)]
     return keep

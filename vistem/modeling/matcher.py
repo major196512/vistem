@@ -112,7 +112,7 @@ class Matcher(object):
         # Note that the matches qualities must be positive due to the use of
         # `torch.nonzero`.
         gt_pred_pairs_of_highest_quality = torch.nonzero(
-            match_quality_matrix == highest_quality_foreach_gt[:, None]
+            match_quality_matrix == highest_quality_foreach_gt[:, None], as_tuple=False
         )
         # Example gt_pred_pairs_of_highest_quality:
         #   tensor([[    0, 39796],
