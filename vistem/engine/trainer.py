@@ -15,7 +15,7 @@ from vistem.evaluation import build_evaluator, evaluator
 
 class Trainer:
     def __init__(self, cfg):
-        if cfg.SEED : cfg.SEED = dist.shared_random_seed()
+        if cfg.SEED < 0 : cfg.SEED = dist.shared_random_seed()
         self._seed = cfg.SEED
         seed_all_rng(self._seed)
         
