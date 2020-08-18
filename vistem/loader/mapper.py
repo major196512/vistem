@@ -10,16 +10,15 @@ from .transforms import build_transform_gen, apply_transform
 
 __all__ = ["DatasetMapper"]
 
+_logger = setup_logger()
 
 class DatasetMapper:
     def __init__(self, cfg, is_train=True):
-        self._logger = setup_logger()
-
         self.img_format = cfg.INPUT.FORMAT
         self.exif_transpose = cfg.INPUT.EXIF
 
         self.tfm_gens = build_transform_gen(cfg, is_train)
-        self._logger.info(f"TransformGens(Training={is_train}) : {str(self.tfm_gens)}")
+        _logger.info(f"TransformGens(Training={is_train}) : {str(self.tfm_gens)}")
 
         self.is_train = is_train
 
@@ -78,7 +77,7 @@ class DatasetMapper:
             
             if not image_wh == expected_wh:
                 file_name = dataset_dict["file_name"] if 'file_name' in dataset_dict else ''
-                self._logger.critical(f"Mismatched (W,H){file_name}, got {image_wh}, expect {expected_wh}")
+                _logger.critical(f"Mismatched (W,H){file_name}, got {image_wh}, expect {expected_wh}")
 
         if "width" not in dataset_dict:
             dataset_dict["width"] = image.shape[1]

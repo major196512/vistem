@@ -32,8 +32,8 @@ class _ColorfulFormatter(logging.Formatter):
             prefix = colored(prefix, "red", attrs=["blink", "underline"])
         return prefix + " " + log
 
-# @functools.lru_cache()
-def setup_logger(output=None):
+@functools.lru_cache()
+def setup_logger(name=None, output=None):
     caller = find_caller()['caller']
     logger = logging.getLogger(caller)
     logger.setLevel(logging.DEBUG)

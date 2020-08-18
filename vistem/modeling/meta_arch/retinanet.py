@@ -5,12 +5,12 @@ import math
 from typing import List
 
 from . import META_ARCH_REGISTRY
-from vistem.modeling import Box2BoxTransform, Matcher
+from vistem.modeling import Box2BoxTransform, Matcher, detector_postprocess
 from vistem.modeling.backbone import build_backbone
 from vistem.modeling.anchors import build_anchor_generator
-from vistem.modeling.layers import Conv2d
+from vistem.modeling.layers import Conv2d, batched_nms
 
-from vistem.structures import ImageList, ShapeSpec, Boxes
+from vistem.structures import ImageList, ShapeSpec, Boxes, Instances
 from vistem.utils.losses import sigmoid_focal_loss_jit, smooth_l1_loss
 
 __all__ = ['Retinanet']
@@ -108,20 +108,32 @@ class RetinaNet(nn.Module):
 
         features = self.backbone(images.tensor)
         features = [features[f] for f in self.in_features]
-        box_cls, box_delta = self.head(features)
         anchors = self.anchor_generator(features)
+        box_cls, box_delta = self.head(features)
 
         if self.training:
+            box_cls, box_delta = permute_all_cls_and_box_to_N_HWA_K_and_concat(
+                box_cls, box_delta, self.num_classes
+            )  # Shapes: (N x R, K) and (N x R, 4), respectively.
+
             gt_classes, gt_anchors_reg_deltas = self.get_ground_truth(anchors, gt_instances)
             return self.losses(gt_classes, gt_anchors_reg_deltas, box_cls, box_delta)
 
-        return x
+        else:
+            box_cls = [permute_to_N_HWA_K(x, self.num_classes) for x in box_cls]
+            box_delta = [permute_to_N_HWA_K(x, 4) for x in box_delta]
+
+            results = self.inference(anchors, box_cls, box_delta, images.image_sizes)
+            processed_results = []
+            for results_per_image, input_per_image, image_size in zip(results, batched_inputs, images.image_sizes):
+                height = input_per_image.get("height", image_size[0])
+                width = input_per_image.get("width", image_size[1])
+                r = detector_postprocess(results_per_image, height, width)
+                processed_results.append({"instances": r})
+
+            return processed_results
 
     def losses(self, gt_classes, gt_anchors_deltas, pred_class_logits, pred_anchor_deltas):
-        pred_class_logits, pred_anchor_deltas = permute_all_cls_and_box_to_N_HWA_K_and_concat(
-            pred_class_logits, pred_anchor_deltas, self.num_classes
-        )  # Shapes: (N x R, K) and (N x R, 4), respectively.
-
         gt_classes = gt_classes.flatten()
         gt_anchors_deltas = gt_anchors_deltas.view(-1, 4)
 
@@ -184,6 +196,62 @@ class RetinaNet(nn.Module):
 
         return torch.stack(gt_classes), torch.stack(gt_anchors_deltas)
 
+    def inference(self, anchors, pred_logits, pred_anchor_deltas, image_sizes):
+        results = []
+        for img_idx, image_size in enumerate(image_sizes):
+            pred_logits_per_image = [x[img_idx] for x in pred_logits]
+            deltas_per_image = [x[img_idx] for x in pred_anchor_deltas]
+            results_per_image = self.inference_single_image(
+                anchors[img_idx], pred_logits_per_image, deltas_per_image, tuple(image_size)
+            )
+            results.append(results_per_image)
+        return results
+
+    def inference_single_image(self, anchors, box_cls, box_delta, image_size):
+        boxes_all = []
+        scores_all = []
+        class_idxs_all = []
+
+        # Iterate over every feature level
+        for box_cls_i, box_reg_i, anchors_i in zip(box_cls, box_delta, anchors):
+            # (HxWxAxK,)
+            box_cls_i = box_cls_i.flatten().sigmoid_()
+
+            # Keep top k top scoring indices only.
+            num_topk = min(self.topk_candidates, box_reg_i.size(0))
+            # torch.sort is actually faster than .topk (at least on GPUs)
+            predicted_prob, topk_idxs = box_cls_i.sort(descending=True)
+            predicted_prob = predicted_prob[:num_topk]
+            topk_idxs = topk_idxs[:num_topk]
+
+            # filter out the proposals with low confidence score
+            keep_idxs = predicted_prob > self.score_threshold
+            predicted_prob = predicted_prob[keep_idxs]
+            topk_idxs = topk_idxs[keep_idxs]
+
+            anchor_idxs = topk_idxs // self.num_classes
+            classes_idxs = topk_idxs % self.num_classes
+
+            box_reg_i = box_reg_i[anchor_idxs]
+            anchors_i = anchors_i[anchor_idxs]
+            # predict boxes
+            predicted_boxes = self.box2box_transform.apply_deltas(box_reg_i, anchors_i.tensor)
+
+            boxes_all.append(predicted_boxes)
+            scores_all.append(predicted_prob)
+            class_idxs_all.append(classes_idxs)
+
+        boxes_all, scores_all, class_idxs_all = [
+            torch.cat(x) for x in [boxes_all, scores_all, class_idxs_all]
+        ]
+        keep = batched_nms(boxes_all, scores_all, class_idxs_all, self.nms_threshold)
+        keep = keep[: self.max_detections_per_image]
+
+        result = Instances(image_size)
+        result.pred_boxes = Boxes(boxes_all[keep])
+        result.scores = scores_all[keep]
+        result.pred_classes = class_idxs_all[keep]
+        return result
 
     def preprocess_image(self, batched_inputs):
         images = [x["image"].to(self.device) for x in batched_inputs]
