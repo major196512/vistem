@@ -10,7 +10,7 @@ from .transforms import build_transform_gen, apply_transform
 
 __all__ = ["DatasetMapper"]
 
-_logger = setup_logger()
+_logger = setup_logger(__name__)
 
 class DatasetMapper:
     def __init__(self, cfg, is_train=True):

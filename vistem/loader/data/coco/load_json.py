@@ -11,7 +11,7 @@ from vistem.structures import BoxMode
 
 __all__ = ['load_coco_json']
 
-_logger = setup_logger()
+_logger = setup_logger(__name__)
 
 def load_coco_json(json_file, image_root, dataset_name, extra_annotation_keys=None):    
     start_time = time.time()

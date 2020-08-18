@@ -34,7 +34,7 @@ class Checkpointer:
         self.save_to_disk = save_to_disk
         self.checkpointables = copy.copy(checkpointables)
 
-        self._logger = setup_logger()
+        self._logger = setup_logger(__name__)
         if not self.save_to_disk:
             self._logger.warning('No saving checkpoint mode')
         if not self.save_dir:

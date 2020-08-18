@@ -7,7 +7,7 @@ from vistem.utils.logger import setup_logger
 __all__ = ["DatasetCatalog", "MetadataCatalog"]
 
 
-_logger = setup_logger()
+_logger = setup_logger(__name__)
 
 class DatasetCatalog(object):
     _REGISTERED = {}

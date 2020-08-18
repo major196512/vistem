@@ -16,7 +16,7 @@ def seed_all_rng(seed=None):
             + int(datetime.now().strftime("%S%f"))
             + int.from_bytes(os.urandom(2), "big")
         )
-        logger = setup_logger()
+        logger = setup_logger(__name__)
         logger.info("Using a generated random seed {}".format(seed))
     np.random.seed(seed)
     torch.set_rng_state(torch.manual_seed(seed).get_state())

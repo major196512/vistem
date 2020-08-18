@@ -11,7 +11,7 @@ from vistem.checkpointer.missing import (
     get_unexpected_parameters_message,
 )
 
-logger = setup_logger()
+logger = setup_logger(__name__)
 
 def convert_basic_c2_names(original_keys):
     """

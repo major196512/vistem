@@ -1,7 +1,7 @@
 import torch
 import torch.multiprocessing as mp
 
-from vistem.utils import setup_logger, find_caller
+from vistem.utils import setup_logger
 from vistem import dist
 
 __all__ = ["launch"]
@@ -23,7 +23,7 @@ def launch(main_func, num_gpus_per_machine, num_machines=1, machine_rank=0, dist
             assert dist_port is not None, "Set dist port number which is same with main machine port"
 
         dist_url = f"tcp://{dist_ip}:{dist_port}"
-        logger = setup_logger()
+        logger = setup_logger(__name__)
         logger.info(f"pytorch distribute url : {dist_url}")
 
         mp.spawn(
@@ -53,7 +53,7 @@ def _distributed_worker(
             backend="NCCL", init_method=dist_url, world_size=world_size, rank=global_rank
         )
     except Exception as e:
-        logger = setup_logger()
+        logger = setup_logger(__name__)
         logger.error("Process group URL: {}".format(dist_url))
         raise e
 

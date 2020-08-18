@@ -40,7 +40,7 @@ class MapDataset(Dataset):
         self._rng = random.Random(42)
         self._fallback_candidates = set(range(len(dataset)))
 
-        self.logger = setup_logger()
+        self.logger = setup_logger(__name__)
 
     def __len__(self):
         return len(self._dataset)

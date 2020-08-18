@@ -33,7 +33,7 @@ class _ColorfulFormatter(logging.Formatter):
         return prefix + " " + log
 
 @functools.lru_cache()
-def setup_logger(name=None, output=None):
+def setup_logger(name, output=None):
     caller = find_caller()['caller']
     logger = logging.getLogger(caller)
     logger.setLevel(logging.INFO)

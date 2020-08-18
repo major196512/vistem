@@ -12,7 +12,7 @@ def main(args):
 
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
-    logger = setup_logger()
+    logger = setup_logger(__name__)
     logger.info(f"Command Line Args:{args}")
     launch(
         main,
