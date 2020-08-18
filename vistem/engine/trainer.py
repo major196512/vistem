@@ -1,11 +1,11 @@
+import torch
 import torch.optim as optim
 from torch.nn.parallel import DistributedDataParallel
-import weakref
 
-from vistem.utils import setup_logger, seed_all_rng
+from vistem.utils import setup_logger, seed_all_rng, Timer
 from vistem import dist
 
-from vistem import hooks
+from vistem.hooks import HookTrainer
 from vistem.loader import build_train_loader, build_test_loader
 
 from vistem.modeling import build_model
@@ -13,17 +13,17 @@ from vistem.solver import build_optimizer, build_lr_scheduler
 from vistem.checkpointer import Checkpointer
 from vistem.evaluation import build_evaluator, evaluator
 
-class Trainer:
+class Trainer(HookTrainer):
     def __init__(self, cfg):
+        super().__init__(cfg)
+
         if cfg.SEED < 0 : cfg.SEED = dist.shared_random_seed()
         self._seed = cfg.SEED
         seed_all_rng(self._seed)
-        
-        self._logger = setup_logger()
         self._logger.debug(f'Config File : \n{cfg}')
 
-        # self.train_loader = build_train_loader(cfg)
-        self.test_loader = build_test_loader(cfg)
+        self.train_loader = iter(build_train_loader(cfg))
+        self.test_loader = iter(build_test_loader(cfg))
 
         self.model = build_model(cfg)
         if dist.is_main_process():
@@ -44,16 +44,6 @@ class Trainer:
         )
 
         self.evaluator = build_evaluator(cfg)
-        
-        self.start_iter = 0
-        self.max_iter = cfg.SOLVER.MAX_ITER
-
-    def register_hooks(self, hooks):
-        hooks = [h for h in hooks if h is not None]
-        for h in hooks:
-            assert isinstance(h, HookBase)
-            h.trainer = weakref.proxy(self)
-        self._hooks.extend(hooks)
 
     def resume_or_load(self, resume=True):
         self.start_iter = (
@@ -63,20 +53,34 @@ class Trainer:
             + 1
         )
 
+    def run_step(self):
+        assert self.model.training, "model was changed to eval mode!"
+        
+        timer = Timer()
+        data = next(self.train_loader)
+        data_time = timer.seconds()
+        timer.pause()
+
+        loss_dict = self.model(data)
+        losses = sum(loss_dict.values())
+
+        self.optimizer.zero_grad()
+        losses.backward()
+
+        # use a new stream so the ops don't wait for DDP
+        with torch.cuda.stream(
+            torch.cuda.Stream()
+        ) if losses.device.type == "cuda" else _nullcontext():
+            metrics_dict = loss_dict
+            metrics_dict["data_time"] = data_time
+            self._write_metrics(metrics_dict)
+
+            if not torch.isfinite(losses).all():
+                raise FloatingPointError(f"Loss became infinite or NaN at iteration={self.iter}!\nloss_dict = {loss_dict}")
+
+        self.optimizer.step()
+
+
     def test(self):
         evaluator(self.model, self.test_loader, self.evaluator)
 
-    # def train(self):
-    #     self.model.train()
-    #     for curr_iter in range(self.max_iter):
-    #         self.optimizer.zero_grad()
-    #         loader_iter = iter(self.train_loader)
-    #         data = next(loader_iter)
-
-    #         loss = self.model(data)
-    #         print(loss)
-    #         loss.backward()
-    #         self.optimizer.step()
-
-    #         if dist.is_main_process() and curr_iter % 10 == 0:
-    #             self._logger.info(f'iteration({curr_iter}) : loss({loss.item():.5f})')
