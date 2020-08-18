@@ -1,27 +1,20 @@
 import torch
-import numpy as np
 import io
 import os
-import json
 import copy
 import contextlib
 import itertools
-from tabulate import tabulate
 from collections import OrderedDict
-
 from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
 
 from vistem import dist
 from vistem.utils import setup_logger
-from vistem.utils.table import create_small_table
 
 from vistem.loader import MetadataCatalog
 from vistem.evaluation.default import Evaluator
-
 from .instances import COCOInstanceEvaluator
 
-class COCOEvaluator(COCOInstanceEvaluator, Evaluator):
+class COCOEvaluator(Evaluator, COCOInstanceEvaluator):
     def __init__(self, cfg, distributed=True):
         self._distributed = distributed
         self._output_dir = cfg.OUTPUT_DIR
@@ -31,11 +24,11 @@ class COCOEvaluator(COCOInstanceEvaluator, Evaluator):
         self._logger = setup_logger(__name__)
 
         dataset_name = cfg.LOADER.TEST_DATASET
-        _metadata = MetadataCatalog.get(dataset_name)
+        self._metadata = MetadataCatalog.get(dataset_name)
 
-        self._category = _metadata.get("category_names")
+        self._category = self._metadata.get("category_names")
         with contextlib.redirect_stdout(io.StringIO()):
-            self._coco_api = COCO(_metadata.json_file)
+            self._coco_api = COCO(self._metadata.json_file)
 
         super().__init__(cfg)
 

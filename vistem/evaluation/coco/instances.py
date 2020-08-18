@@ -1,13 +1,14 @@
 import numpy as np
+import os
+import json
+import itertools
+from pycocotools.cocoeval import COCOeval
 import pycocotools.mask as mask_util
 
 from vistem.structures import BoxMode
+from vistem.utils.table import create_small_table, create_multi_column_table
 
-from vistem.evaluation.default import Evaluator
-
-
-
-class COCOInstanceEvaluator(Evaluator):
+class COCOInstanceEvaluator:
     def __init__(self, cfg):
         self._tasks = self._tasks_from_config(cfg)
 
@@ -145,7 +146,7 @@ class COCOInstanceEvaluator(Evaluator):
         results_flatten = itertools.zip_longest(*[results_flatten[i::N_COLS] for i in range(N_COLS)])
 
         table = create_multi_column_table(results_flatten, 3, headers=["category", "AP"], align='left')
-        self._logger.info(f"Per-category {iou_type} AP: \ntable")
+        self._logger.info(f"Per-category {iou_type} AP: \n{table}")
         
-        results.update({f"AP-{name}": ap for name, ap in cagegory_results})
+        results.update({f"AP-{name}": ap for name, ap in category_results})
         return results

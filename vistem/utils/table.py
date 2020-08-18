@@ -14,7 +14,7 @@ def create_small_table(data):
 
 def create_multi_column_table(data, num_column, headers = [], align='center'):
     table = tabulate(
-            results_2d,
+            data,
             tablefmt="pipe",
             floatfmt=".3f",
             headers=headers * num_column,
