@@ -21,9 +21,10 @@ class Trainer(HookTrainer):
         self._seed = cfg.SEED
         seed_all_rng(self._seed)
         self._logger.debug(f'Config File : \n{cfg}')
-
-        self.train_loader = iter(build_train_loader(cfg))
-        self.test_loader = iter(build_test_loader(cfg))
+        
+        self.train_loader = build_train_loader(cfg)
+        self.test_loader = build_test_loader(cfg)
+        self.train_iter = iter(self.train_loader)
 
         self.model = build_model(cfg)
         if dist.is_main_process():
@@ -57,7 +58,7 @@ class Trainer(HookTrainer):
         assert self.model.training, "model was changed to eval mode!"
         
         timer = Timer()
-        data = next(self.train_loader)
+        data = next(self.train_iter)
         data_time = timer.seconds()
         timer.pause()
 
