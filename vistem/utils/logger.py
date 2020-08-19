@@ -13,12 +13,14 @@ __all__ = ['setup_logger']
 class _ColorfulFormatter(logging.Formatter):
     def __init__(self, *args, **kwargs):
         self._root_name = kwargs.pop("root_name")
+        if 'rank' in kwargs : self._rank = kwargs.pop('rank')
         super(_ColorfulFormatter, self).__init__(*args, **kwargs)
 
     def formatMessage(self, record):
         log = super(_ColorfulFormatter, self).formatMessage(record)
         prefix = time.strftime('[%m/%d %H:%M:%S]', time.localtime(time.time()))
         prefix = f'{prefix} {self._root_name}'
+        if hasattr(self, '_rank') : prefix = f'{prefix}({self._rank})'
 
         if record.levelno == logging.DEBUG:
             prefix = colored(prefix, "blue")
@@ -33,14 +35,22 @@ class _ColorfulFormatter(logging.Formatter):
         return prefix + " " + log
 
 @functools.lru_cache()
-def setup_logger(name, output=None):
+def setup_logger(name, all_rank=False, output=None):
     caller = find_caller()['caller']
     logger = logging.getLogger(caller)
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
+    if all_rank:
+        formatter = _ColorfulFormatter("%(message)s", root_name=caller, rank=get_rank())
+
+        ch = logging.StreamHandler(stream=sys.stdout)
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+
     # stdout logging: master only
-    if get_rank() == 0:
+    elif get_rank() == 0:
         formatter = _ColorfulFormatter("%(message)s", root_name=caller)
 
         ch = logging.StreamHandler(stream=sys.stdout)

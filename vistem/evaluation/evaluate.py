@@ -8,7 +8,7 @@ from vistem import dist
 
 def evaluator(model, data_loader, evaluators):
     num_devices = dist.get_world_size()
-    _logger = setup_logger(__name__)
+    _logger = setup_logger(__name__, all_rank=True)
 
     total = len(data_loader)  # inference data loader must have a fixed length
     _logger.info(f"Start inference on {total} images")
