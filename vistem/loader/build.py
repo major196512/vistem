@@ -13,8 +13,8 @@ from .sampler import IterSampler, InferenceSampler
 __all__ = ['build_train_loader', 'build_test_loader']
 
 def build_train_loader(cfg):
-    images_per_batch = cfg.SOLVER.BATCH_SIZE
-    assert images_per_batch > dist.get_world_size()
+    images_per_batch = cfg.SOLVER.IMG_PER_BATCH
+    assert images_per_batch >= dist.get_world_size()
     assert images_per_batch % dist.get_world_size() == 0
 
     data = [DatasetCatalog.get(cfg.LOADER.TRAIN_DATASET)]
