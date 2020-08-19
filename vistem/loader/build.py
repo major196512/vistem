@@ -1,12 +1,13 @@
 import torch
 import numpy as np
 import itertools
+import operator
 
 from vistem.utils.env import seed_all_rng
 from vistem import dist
 
 from .catalog import DatasetCatalog, MetadataCatalog
-from .dataset import ListDataset, MapDataset
+from .dataset import ListDataset, MapDataset, AspectRatioGroupedDataset
 from .mapper import DatasetMapper
 from .sampler import IterSampler, InferenceSampler
 
@@ -29,14 +30,30 @@ def build_train_loader(cfg):
                 sampler, images_per_batch // dist.get_world_size(), drop_last=True
             )  # drop last so the batch always have the same size
 
-    data_loader = torch.utils.data.DataLoader(
-        dataset,
-        num_workers=cfg.LOADER.NUM_WORKERS,
-        batch_sampler=batch_sampler,
-        collate_fn=trivial_batch_collator,
-        worker_init_fn=worker_init_reset_seed,
-    )
-    return data_loader
+    if cfg.LOADER.ASPECT_GROUPING:
+        data_loader = torch.utils.data.DataLoader(
+            dataset,
+            sampler=sampler,
+            batch_sampler=None,
+            num_workers=cfg.LOADER.NUM_WORKERS,
+            collate_fn=operator.itemgetter(0),
+            worker_init_fn=worker_init_reset_seed,
+        )
+        return AspectRatioGroupedDataset(data_loader, images_per_batch // dist.get_world_size())
+    
+    else:
+        batch_sampler = torch.utils.data.sampler.BatchSampler(
+                sampler, images_per_batch // dist.get_world_size(), drop_last=True
+            )  # drop last so the batch always have the same size
+
+        data_loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_sampler=batch_sampler,
+            num_workers=cfg.LOADER.NUM_WORKERS,
+            collate_fn=trivial_batch_collator,
+            worker_init_fn=worker_init_reset_seed,
+        )
+        return data_loader
 
 def build_test_loader(cfg):
     data = [DatasetCatalog.get(cfg.LOADER.TEST_DATASET)]
