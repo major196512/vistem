@@ -5,6 +5,7 @@ from torch.nn.parallel import DistributedDataParallel
 from vistem.utils import setup_logger, seed_all_rng, Timer
 from vistem import dist
 
+from vistem import hooks
 from vistem.hooks import HookTrainer
 from vistem.loader import build_train_loader, build_test_loader
 
@@ -45,6 +46,21 @@ class Trainer(HookTrainer):
         )
 
         self.evaluator = build_evaluator(cfg)
+
+        hooks = self.build_hooks(cfg)
+        self.register_hooks(hooks)
+
+    def build_hooks(self, cfg):
+        # cfg = self.cfg.clone()
+        # cfg.defrost()
+        # cfg.DATALOADER.NUM_WORKERS = 0  # save some memory and time for PreciseBN
+
+        ret = list()
+        ret.append(hooks.TrainTimer())
+        if dist.is_main_process():
+            ret.append(hooks.IterTimer(period=20))
+
+        return ret
 
     def resume_or_load(self, resume=True):
         self.start_iter = (
