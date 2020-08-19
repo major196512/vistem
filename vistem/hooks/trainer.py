@@ -5,6 +5,8 @@ import weakref
 from vistem import dist
 from vistem.utils import setup_logger, EventStorage
 
+__all__ = ['HookBase', 'HookTrainer']
+
 class HookBase:
     def before_train(self):
         pass

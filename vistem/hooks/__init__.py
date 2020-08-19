@@ -1,1 +1,1 @@
-from .default import HookBase, HookTrainer
+from .trainer import HookBase, HookTrainer
