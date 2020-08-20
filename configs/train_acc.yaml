@@ -1,0 +1,13 @@
+BASE_CFG : './configs/base.yaml'
+OUTPUT_DIR : './outputs/accumulate'
+SEED : 0
+
+SOLVER :
+  MAX_ITER : 360000
+  IMG_PER_BATCH : 4
+  BASE_LR : 0.0025
+  STEPS : (160000, 320000)
+  ACCUMULATE : 2
+
+TEST :
+  EVAL_PERIOD : 10000
