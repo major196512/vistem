@@ -1,12 +1,12 @@
 import torch
 import torch.optim as optim
 from torch.nn.parallel import DistributedDataParallel
+import numpy as np
 
 from vistem.utils import setup_logger, seed_all_rng, Timer
 from vistem import dist
 
-from vistem import hooks
-from vistem.hooks import HookTrainer
+from vistem.hooks import HookTrainer, build_hooks
 from vistem.loader import build_train_loader, build_test_loader
 
 from vistem.modeling import build_model
@@ -47,27 +47,8 @@ class Trainer(HookTrainer):
 
         self.evaluator = build_evaluator(cfg)
 
-        hooks = self.build_hooks(cfg)
+        hooks = build_hooks(cfg, self.optimizer, self.scheduler, self.checkpointer)
         self.register_hooks(hooks)
-
-    def build_hooks(self, cfg):
-        # cfg = self.cfg.clone()
-        # cfg.defrost()
-        # cfg.DATALOADER.NUM_WORKERS = 0  # save some memory and time for PreciseBN
-
-        ret = list()
-        ret.append(hooks.TrainTimer())
-        ret.append(hooks.LRScheduler(self.optimizer, self.scheduler))
-
-        if dist.is_main_process():
-            ret.append(hooks.PeriodicCheckpointer(cfg, self.checkpointer))
-            ret.append(hooks.IterTimer(cfg))
-            ret.append(hooks.JSONWriter(cfg))
-            ret.append(hooks.TensorboardXWriter(cfg))
-
-        ret.append(hooks.EvalHook(cfg))
-
-        return ret
 
     def resume_or_load(self, resume=True):
         self.start_iter = (
@@ -104,6 +85,27 @@ class Trainer(HookTrainer):
 
         self.optimizer.step()
 
+    def _write_metrics(self, metrics_dict: dict):
+        metrics_dict = {
+            k: v.detach().cpu().item() if isinstance(v, torch.Tensor) else float(v)
+            for k, v in metrics_dict.items()
+        }
+        all_metrics_dict = dist.gather(metrics_dict)
+
+        if dist.is_main_process():
+            if "data_time" in all_metrics_dict[0]:
+                data_time = np.max([x.pop("data_time") for x in all_metrics_dict])
+                self.storage.put_scalar("data_time", data_time)
+
+            # average the rest metrics
+            metrics_dict = {
+                k: np.mean([x[k] for x in all_metrics_dict]) for k in all_metrics_dict[0].keys()
+            }
+            total_losses_reduced = sum(loss for loss in metrics_dict.values())
+
+            self.storage.put_scalar("total_loss", total_losses_reduced)
+            if len(metrics_dict) > 1:
+                self.storage.put_scalars(**metrics_dict)
 
     def test(self):
         return evaluator(self.model, self.test_loader, self.evaluator)

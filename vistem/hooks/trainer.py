@@ -1,8 +1,4 @@
-import torch
-import numpy as np
 import weakref
-
-from vistem import dist
 from vistem.utils import setup_logger, EventStorage
 
 __all__ = ['HookBase', 'HookTrainer']
@@ -35,27 +31,7 @@ class HookTrainer:
             h.trainer = weakref.proxy(self)
         self._hooks.extend(hooks)
 
-    def _write_metrics(self, metrics_dict: dict):
-        metrics_dict = {
-            k: v.detach().cpu().item() if isinstance(v, torch.Tensor) else float(v)
-            for k, v in metrics_dict.items()
-        }
-        all_metrics_dict = dist.gather(metrics_dict)
-
-        if dist.is_main_process():
-            if "data_time" in all_metrics_dict[0]:
-                data_time = np.max([x.pop("data_time") for x in all_metrics_dict])
-                self.storage.put_scalar("data_time", data_time)
-
-            # average the rest metrics
-            metrics_dict = {
-                k: np.mean([x[k] for x in all_metrics_dict]) for k in all_metrics_dict[0].keys()
-            }
-            total_losses_reduced = sum(loss for loss in metrics_dict.values())
-
-            self.storage.put_scalar("total_loss", total_losses_reduced)
-            if len(metrics_dict) > 1:
-                self.storage.put_scalars(**metrics_dict)
+    
 
     def train(self):
         self._logger.info(f"Starting training from iteration {self.start_iter}")
