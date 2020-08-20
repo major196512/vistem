@@ -3,14 +3,10 @@ from collections import defaultdict
 from .history import HistoryBuffer
 
 __all__ = [
-    "get_event_storage",
     "EventStorage",
 ]
 
 _CURRENT_STORAGE = []
-def get_event_storage():
-    assert _CURRENT_STORAGE is not None, "get_event_storage() has to be called inside a 'with EventStorage(...)' context!"
-    return _CURRENT_STORAGE
 
 class EventStorage:
     def __init__(self, start_iter=0):
@@ -61,9 +57,9 @@ class EventStorage:
 
     def latest_with_smoothing(self, window_size=20):
         result = {}
-        for k, h in self._history.items():
-            if self._smoothing_hints[k] : result[k] = (h.median(window_size), iter)
-            else : result[k] = (v, iter)
+        for k, v in self._history.items():
+            if self._smoothing_hints[k] : result[k] = (v.median(window_size), self._iter)
+            else : result[k] = (v.latest(), self._iter)
         return result
 
     def step(self):
@@ -78,8 +74,16 @@ class EventStorage:
         # for backward compatibility
         return self._iter
 
+    def history(self, name):
+        ret = self._history.get(name, None)
+        if ret is None:
+            raise KeyError("No history metric available for {name}!")
+        return ret
+
+    def histories(self):
+        return self._history
+        
     def __enter__(self):
-        assert len(_CURRENT_STORAGE) < 1
         _CURRENT_STORAGE.append(self)
         return self
 
