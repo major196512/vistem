@@ -13,7 +13,7 @@ from vistem import dist
 def build_hooks(cfg, optimizer, scheduler, checkpointer):
     ret = list()
     ret.append(TrainTimer())
-    ret.append(LRScheduler(optimizer, scheduler))
+    ret.append(LRScheduler(cfg, optimizer, scheduler))
 
     if dist.is_main_process():
         ret.append(PeriodicCheckpointer(cfg, checkpointer))

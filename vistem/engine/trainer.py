@@ -28,11 +28,14 @@ class Trainer(HookTrainer):
         self.train_iter = iter(self.train_loader)
 
         self.model = build_model(cfg)
+        self.model.train()
         if dist.is_main_process():
             self._logger.debug(f"Model Structure\n{self.model}")
         
         self.optimizer = build_optimizer(cfg, self.model)
         self.scheduler = build_lr_scheduler(cfg, self.optimizer)
+        self.accumulate = cfg.SOLVER.ACCUMULATE
+        self.optimizer.zero_grad()
         
         if dist.get_world_size() > 1:
             self.model = DistributedDataParallel(self.model, device_ids=[dist.get_local_rank()], broadcast_buffers=False)
@@ -68,8 +71,6 @@ class Trainer(HookTrainer):
 
         loss_dict = self.model(data)
         losses = sum(loss_dict.values())
-
-        self.optimizer.zero_grad()
         losses.backward()
 
         # use a new stream so the ops don't wait for DDP
@@ -81,9 +82,11 @@ class Trainer(HookTrainer):
             self._write_metrics(metrics_dict)
 
             if not torch.isfinite(losses).all():
-                raise FloatingPointError(f"Loss became infinite or NaN at iteration={self.iter}!\nloss_dict = {loss_dict}")
+                raise FloatingPointError(f"Loss became infinite or NaN at iteration={self.iter}!\nloss_dict = {loss_dict}\n{data}")
 
-        self.optimizer.step()
+        if (self.iter+1) % self.accumulate == 0:
+            self.optimizer.step()
+            self.optimizer.zero_grad()
 
     def _write_metrics(self, metrics_dict: dict):
         metrics_dict = {
