@@ -11,9 +11,9 @@ from vistem.structures import BoxMode
 
 __all__ = ['load_coco_json']
 
-_logger = setup_logger(__name__)
-
 def load_coco_json(json_file, image_root, dataset_name, filter=True, extra_annotation_keys=None):    
+    _logger = setup_logger(__name__, all_rank=True)
+
     start_time = time.time()
     with contextlib.redirect_stdout(io.StringIO()) : coco_api = COCO(json_file)
     end_time = time.time()
@@ -68,6 +68,8 @@ def load_coco_json(json_file, image_root, dataset_name, filter=True, extra_annot
     return dataset_dicts
 
 def filter_images_with_only_crowd_annotations(dataset_dicts):
+    _logger = setup_logger(__name__, all_rank=True)
+    
     num_before = len(dataset_dicts)
 
     def valid(anns):

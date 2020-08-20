@@ -7,7 +7,7 @@ def main(args):
     cfg = get_cfg(args.config_file)
 
     trainer = Trainer(cfg)
-    trainer.resume_or_load()
+    trainer.resume_or_load(resume=args.resume)
     trainer.train()
 
 if __name__ == "__main__":

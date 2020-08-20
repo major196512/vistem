@@ -13,4 +13,6 @@ def default_argument_parser():
 
     parser.add_argument("--dist-ip", default=None)
     parser.add_argument("--dist-port", default=None)
+
+    parser.add_argument("--resume", default=False)
     return parser
