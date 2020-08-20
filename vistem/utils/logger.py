@@ -5,7 +5,7 @@ import logging
 import time
 from termcolor import colored
 
-from vistem.dist.get_info import get_rank
+from vistem.dist.get_info import get_rank, get_world_size
 from .caller import find_caller
 
 __all__ = ['setup_logger']
@@ -20,7 +20,7 @@ class _ColorfulFormatter(logging.Formatter):
         log = super(_ColorfulFormatter, self).formatMessage(record)
         prefix = time.strftime('[%m/%d %H:%M:%S]', time.localtime(time.time()))
         prefix = f'{prefix} {self._root_name}'
-        if hasattr(self, '_rank') : prefix = f'{prefix}({self._rank})'
+        if hasattr(self, '_rank') : prefix = f'{prefix}(rank:{self._rank})'
 
         if record.levelno == logging.DEBUG:
             prefix = colored(prefix, "blue")
@@ -38,10 +38,10 @@ class _ColorfulFormatter(logging.Formatter):
 def setup_logger(name, all_rank=False, output=None):
     caller = find_caller()['caller']
     logger = logging.getLogger(caller)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     logger.propagate = False
 
-    if all_rank:
+    if all_rank and get_world_size() > 1:
         formatter = _ColorfulFormatter("%(message)s", root_name=caller, rank=get_rank())
 
         ch = logging.StreamHandler(stream=sys.stdout)

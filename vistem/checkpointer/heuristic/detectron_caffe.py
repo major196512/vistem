@@ -11,7 +11,7 @@ from vistem.checkpointer.missing import (
     get_unexpected_parameters_message,
 )
 
-logger = setup_logger(__name__)
+
 
 def convert_basic_c2_names(original_keys):
     """
@@ -23,6 +23,8 @@ def convert_basic_c2_names(original_keys):
     Returns:
         list[str]: The same number of strings matching those in original_keys.
     """
+    logger = setup_logger(__name__)
+    
     layer_keys = copy.deepcopy(original_keys)
     layer_keys = [
         {"pred_b": "linear_b", "pred_w": "linear_w"}.get(k, k) for k in layer_keys
@@ -81,7 +83,9 @@ def convert_c2_detectron_names(weights):
         dict: detectron2 names -> C2 names
     """
     
-    logger.info("Remapping C2 weights ......")
+    logger = setup_logger(__name__)
+
+    logger.debug("Remapping C2 weights ......")
     original_keys = sorted(weights.keys())
     layer_keys = copy.deepcopy(original_keys)
 
@@ -191,7 +195,7 @@ def convert_c2_detectron_names(weights):
             # remove the meaningless prediction weight for background class
             new_start_idx = 4 if renamed.startswith("bbox_pred.") else 1
             new_weights[renamed] = weights[orig][new_start_idx:]
-            logger.info(
+            logger.debug(
                 "Remove prediction weight for background class in {}. The shape changes from "
                 "{} to {}.".format(
                     renamed, tuple(weights[orig].shape), tuple(new_weights[renamed].shape)
@@ -199,7 +203,7 @@ def convert_c2_detectron_names(weights):
             )
         elif renamed.startswith("cls_score."):
             # move weights of bg class from original index 0 to last index
-            logger.info(
+            logger.debug(
                 "Move classification weights for background class in {} from index 0 to "
                 "index {}.".format(renamed, weights[orig].shape[0] - 1)
             )
@@ -232,6 +236,8 @@ def align_and_update_state_dicts(model_state_dict, ckpt_state_dict, c2_conversio
     we want to match backbone[0].body.conv1.weight to conv1.weight, and
     backbone[0].body.res2.conv1.weight to res2.conv1.weight.
     """
+    logger = setup_logger(__name__)
+    
     model_keys = sorted(list(model_state_dict.keys()))
     if c2_conversion=='Caffe2':
         ckpt_state_dict, original_keys = convert_c2_detectron_names(ckpt_state_dict)
@@ -303,16 +309,16 @@ def align_and_update_state_dicts(model_state_dict, ckpt_state_dict, c2_conversio
                     )
         msg += f'\n{log_str}'
 
-    logger.info(f'align and update state dicts{msg}')
+    logger.debug(f'align and update state dicts{msg}')
     matched_model_keys = matched_keys.values()
     matched_ckpt_keys = matched_keys.keys()
     # print warnings about unmatched keys on both side
     unmatched_model_keys = [k for k in model_keys if k not in matched_model_keys]
     if len(unmatched_model_keys):
-        logger.info(get_missing_parameters_message(unmatched_model_keys))
+        logger.debug(get_missing_parameters_message(unmatched_model_keys))
 
     unmatched_ckpt_keys = [k for k in ckpt_keys if k not in matched_ckpt_keys]
     if len(unmatched_ckpt_keys):
-        logger.info(
+        logger.debug(
             get_unexpected_parameters_message(original_keys[x] for x in unmatched_ckpt_keys)
         )

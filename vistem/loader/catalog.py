@@ -6,9 +6,6 @@ from vistem.utils.logger import setup_logger
 
 __all__ = ["DatasetCatalog", "MetadataCatalog"]
 
-
-_logger = setup_logger(__name__)
-
 class DatasetCatalog(object):
     _REGISTERED = {}
 
@@ -17,7 +14,7 @@ class DatasetCatalog(object):
         assert callable(func), "You must register a function with `DatasetCatalog.register`!"
         assert name not in DatasetCatalog._REGISTERED, f"Dataset '{name}' is already registered!"
         DatasetCatalog._REGISTERED[name] = func
-        _logger.debug(f'DatasetCatalog({name})')
+        # _logger.debug(f'DatasetCatalog({name})')
 
     @staticmethod
     def get(name):
@@ -38,6 +35,8 @@ class DatasetCatalog(object):
         DatasetCatalog._REGISTERED.clear()
 
 class Metadata(types.SimpleNamespace):
+    _logger = setup_logger(__name__)
+
     def __setattr__(self, key, val):
         if hasattr(self, key):
             oldval = getattr(self, key)

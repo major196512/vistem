@@ -10,10 +10,12 @@ from .transforms import build_transform_gen, apply_transform
 
 __all__ = ["DatasetMapper"]
 
-_logger = setup_logger(__name__)
+
 
 class DatasetMapper:
     def __init__(self, cfg, is_train=True):
+        _logger = setup_logger(__name__)
+
         self.img_format = cfg.INPUT.FORMAT
         self.exif_transpose = cfg.INPUT.EXIF
 
@@ -77,6 +79,7 @@ class DatasetMapper:
             
             if not image_wh == expected_wh:
                 file_name = dataset_dict["file_name"] if 'file_name' in dataset_dict else ''
+                _logger = setup_logger(__name__)
                 _logger.critical(f"Mismatched (W,H){file_name}, got {image_wh}, expect {expected_wh}")
 
         if "width" not in dataset_dict:
