@@ -59,7 +59,7 @@ class VOCInstanceEvaluator:
         mAP = {iou: np.mean(x) for iou, x in aps.items()}
         results["bbox"] = {"AP": np.mean(list(mAP.values())), "AP50": mAP[50], "AP75": mAP[75]}
         
-        table = create_small_table(results)
+        table = create_small_table(results['bbox'])
         self._logger.info(f"\n{table}")
 
         return results
