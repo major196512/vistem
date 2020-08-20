@@ -17,10 +17,12 @@ def build_hooks(cfg, optimizer, scheduler, checkpointer):
 
     if dist.is_main_process():
         ret.append(PeriodicCheckpointer(cfg, checkpointer))
+
+    ret.append(EvalHook(cfg))
+
+    if dist.is_main_process():
         ret.append(IterTimer(cfg))
         ret.append(JSONWriter(cfg))
         ret.append(TensorboardXWriter(cfg))
-
-    ret.append(EvalHook(cfg))
 
     return ret
