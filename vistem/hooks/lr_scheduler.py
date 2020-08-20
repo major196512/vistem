@@ -34,5 +34,6 @@ class LRScheduler(HookBase):
         self.trainer.storage.put_scalar("lr", lr, smoothing_hint=False)
         if (self.trainer.iter + 1) % self.accumulate == 0:
             self._optimizer.step()
-            self._scheduler.step()
+            for _ in range(self.accumulate): 
+                self._scheduler.step()
             self._optimizer.zero_grad()
