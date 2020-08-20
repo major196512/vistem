@@ -65,6 +65,8 @@ class Trainer(HookTrainer):
         if dist.is_main_process():
             ret.append(hooks.IterTimer(period=20))
 
+        ret.append(hooks.EvalHook(cfg))
+
         return ret
 
     def resume_or_load(self, resume=True):
@@ -104,5 +106,5 @@ class Trainer(HookTrainer):
 
 
     def test(self):
-        evaluator(self.model, self.test_loader, self.evaluator)
+        return evaluator(self.model, self.test_loader, self.evaluator)
 
