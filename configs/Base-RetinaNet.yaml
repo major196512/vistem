@@ -1,25 +1,18 @@
-LOADER :
-  TRAIN_DATASET : 'coco_2017_train'
-  TEST_DATASET : 'coco_2017_val'
-  TRAIN_SHUFFLE : True
-  NUM_WORKERS : 4
-
 MODEL :
+  META_ARCHITECTURE : 'RetinaNet'
   WEIGHTS : './pretrained_weights/R-50.pkl'
   ANCHOR_GENERATOR:
     NAME : 'DefaultAnchorGenerator'
     SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"] 
     ASPECT_RATIOS : [[0.5, 1.0, 2.0]]
+  BACKBONE :
+    NAME : 'RetinaNetFPN'
   RESNETS : 
+    DEPTH : 50
     OUT_FEATURES : ['res3', 'res4', 'res5']
     NORM : 'FrozenBN'
-
-SOLVER :
-  OPTIMIZER : 'SGD'
-  MAX_ITER : 90000
-  IMG_PER_BATCH : 16
-  BASE_LR : 0.01
-  STEPS : (60000, 80000)
-
-  CHECKPOINT_PERIOD : 5000
-  CHECKPOINT_KEEP : 0
+  FPN :
+    IN_FEATURES : ['res3', 'res4', 'res5']
+  RETINANET :
+    IN_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']
+    NUM_CONVS : 4

@@ -26,8 +26,14 @@ class LRScheduler(HookBase):
                     self._best_param_group_id = i
                     break
 
+    def before_train(self):
+        self._optimizer.zero_grad()
+
     def after_step(self):
         lr = self._optimizer.param_groups[self._best_param_group_id]["lr"]
         self.trainer.storage.put_scalar("lr", lr, smoothing_hint=False)
         if (self.trainer.iter + 1) % self.accumulate == 0:
-            self._scheduler.step()
+            self._optimizer.step()
+            for _ in range(self.accumulate): 
+                self._scheduler.step()
+            self._optimizer.zero_grad()

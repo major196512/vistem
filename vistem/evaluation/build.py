@@ -3,6 +3,7 @@ from vistem.loader import MetadataCatalog
 
 from .default import Evaluators
 from .coco import COCOEvaluator
+from .pascal_voc import VOCEvaluator
 
 __all__ = ['build_evaluator']
 
@@ -14,6 +15,8 @@ def build_evaluator(cfg):
     evaluators = []
     if eval_type == 'coco':
         evaluators.append(COCOEvaluator(cfg))
+    elif eval_type == 'voc':
+        evaluators.append(VOCEvaluator(cfg))
     else:
         _logger.error(f'There is no Evaluation Type : {test_dataset}')
 

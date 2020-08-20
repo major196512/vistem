@@ -1,0 +1,8 @@
+BASE_CFG : './configs/RetinaNet/COCO-Detection.yaml'
+OUTPUT_DIR : './outputs/retinanet_R50_FPN_1x_8gpu'
+SEED : 0
+
+MODEL:
+  WEIGHTS : './pretrained_weights/R-50.pkl'
+  RESNETS :
+    DEPTH : 50
