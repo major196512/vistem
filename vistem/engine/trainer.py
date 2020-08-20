@@ -57,6 +57,11 @@ class Trainer(HookTrainer):
 
         ret = list()
         ret.append(hooks.TrainTimer())
+        ret.append(hooks.LRScheduler(self.optimizer, self.scheduler))
+
+        if dist.is_main_process():
+            ret.append(hooks.PeriodicCheckpointer(cfg, self.checkpointer))
+
         if dist.is_main_process():
             ret.append(hooks.IterTimer(period=20))
 

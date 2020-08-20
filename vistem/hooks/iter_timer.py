@@ -6,7 +6,6 @@ from vistem.utils import setup_logger
 from vistem.hooks import HookBase
 
 class IterTimer(HookBase):
-
     def __init__(self, period):
         self.logger = setup_logger(__name__)
         self._period = period
@@ -14,7 +13,7 @@ class IterTimer(HookBase):
 
     def after_step(self):
         iteration = self.trainer.iter
-        if iteration % self._period == 0 or iteration == self.trainer.max_iter:
+        if (iteration+1) % self._period == 0 or iteration == self.trainer.max_iter:
             self.print_metric()
 
     def print_metric(self):
