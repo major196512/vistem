@@ -18,7 +18,7 @@ def build_train_loader(cfg):
     assert images_per_batch >= dist.get_world_size()
     assert images_per_batch % dist.get_world_size() == 0
 
-    data = [DatasetCatalog.get(cfg.LOADER.TRAIN_DATASET)]
+    data = [DatasetCatalog.get(train_dataset) for train_dataset in cfg.LOADER.TRAIN_DATASET]
     data = list(itertools.chain.from_iterable(data))
 
     dataset = ListDataset(cfg, data)

@@ -1,5 +1,5 @@
 LOADER :
-  TRAIN_DATASET : 'coco_2017_train'
+  TRAIN_DATASET : ('coco_2017_train', )
   TEST_DATASET : 'coco_2017_val'
   TRAIN_SHUFFLE : True
   NUM_WORKERS : 4

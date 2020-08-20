@@ -4,7 +4,7 @@ SEED : 0
 
 LOADER :
   # TRAIN: ('voc_2007_trainval', 'voc_2012_trainval')
-  TRAIN_DATASET : 'voc_2007_trainval'
+  TRAIN_DATASET : ('voc_2007_trainval', 'voc_2012_trainval')
   TEST_DATASET : 'voc_2007_test'
 
 SOLVER :
