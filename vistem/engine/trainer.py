@@ -61,9 +61,9 @@ class Trainer(HookTrainer):
 
         if dist.is_main_process():
             ret.append(hooks.PeriodicCheckpointer(cfg, self.checkpointer))
-
-        if dist.is_main_process():
-            ret.append(hooks.IterTimer(period=20))
+            ret.append(hooks.IterTimer(cfg))
+            ret.append(hooks.JSONWriter(cfg))
+            ret.append(hooks.TensorboardXWriter(cfg))
 
         ret.append(hooks.EvalHook(cfg))
 

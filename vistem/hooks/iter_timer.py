@@ -6,9 +6,9 @@ from vistem.utils import setup_logger
 from vistem.hooks import HookBase
 
 class IterTimer(HookBase):
-    def __init__(self, period):
+    def __init__(self, cfg):
         self.logger = setup_logger(__name__)
-        self._period = period
+        self._period = cfg.TEST.WRITER_PERIOD
         self._last_write = None
 
     def after_step(self):
