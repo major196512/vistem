@@ -18,5 +18,6 @@ setup(
         "termcolor>=1.1",
         "Pillow>=6.0",
         "yacs>=0.1.6",
+        "tabulate>=0.8"
     ],
 )
