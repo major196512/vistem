@@ -57,9 +57,9 @@ class EventStorage:
 
     def latest_with_smoothing(self, window_size=20):
         result = {}
-        for k, h in self._history.items():
-            if self._smoothing_hints[k] : result[k] = (h.median(window_size), iter)
-            else : result[k] = (v, iter)
+        for k, v in self._history.items():
+            if self._smoothing_hints[k] : result[k] = (v.median(window_size), self._iter)
+            else : result[k] = (v.latest(), self._iter)
         return result
 
     def step(self):
