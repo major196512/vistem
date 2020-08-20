@@ -8,7 +8,8 @@ def main(args):
 
     trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)
-    trainer.train()
+    if args.eval_only : trainer.test()
+    else : trainer.train()
 
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
