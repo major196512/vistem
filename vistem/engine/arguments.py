@@ -14,5 +14,6 @@ def default_argument_parser():
     parser.add_argument("--dist-ip", default=None)
     parser.add_argument("--dist-port", default=None)
 
-    parser.add_argument("--resume", default=False)
+    parser.add_argument("--eval-only", action="store_true", help="perform evaluation only")
+    parser.add_argument("--resume", action="store_true", help="resume training")
     return parser
