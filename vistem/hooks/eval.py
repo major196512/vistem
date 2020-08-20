@@ -42,7 +42,7 @@ class EvalHook(HookBase):
         r = {}
         for k, v in results.items():
             if isinstance(v, Mapping):
-                v = flatten_results_dict(v)
+                v = self.flatten_results_dict(v)
                 for kk, vv in v.items():
                     r[k + "/" + kk] = vv
             else:
