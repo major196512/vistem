@@ -33,6 +33,7 @@ class Trainer(HookTrainer):
             self._logger.debug(f"Model Structure\n{self.model}")
         
         self.optimizer = build_optimizer(cfg, self.model)
+        self.optimizer.zero_grad()
         self.scheduler = build_lr_scheduler(cfg, self.optimizer)
         self.accumulate = cfg.SOLVER.ACCUMULATE
         
@@ -70,6 +71,7 @@ class Trainer(HookTrainer):
 
         loss_dict = self.model(data)
         losses = sum(loss_dict.values())
+        losses /= self.accumulate
         losses.backward()
 
         # use a new stream so the ops don't wait for DDP
@@ -81,7 +83,14 @@ class Trainer(HookTrainer):
             self._write_metrics(metrics_dict)
 
             if not torch.isfinite(losses).all():
-                raise FloatingPointError(f"Loss became infinite or NaN at iteration={self.iter}!\nloss_dict = {loss_dict}\n{data}")
+                raise FloatingPointError(f"Loss became infinite or NaN at iteration={self.iter}!\nloss_dict = {loss_dict}")
+
+        if (self.iter + 1) % self.accumulate == 0:
+            # for param in self.model.parameters():
+            #     torch.distributed.all_reduce(param.grad.data)
+            #     param.grad.data /= dist.get_world_size()
+            self.optimizer.step()
+            self.optimizer.zero_grad()
 
     def _write_metrics(self, metrics_dict: dict):
         metrics_dict = {

@@ -1,0 +1,15 @@
+BASE_CFG : './configs/RetinaNet/COCO-Detection/R50_FPN_1x_8gpu.yaml'
+OUTPUT_DIR : './output_coco/retinanet_R50_FPN_3x_4gpu_2acc'
+SEED : 0
+
+SOLVER :
+  ACCUMULATE : 2
+  MAX_ITER : 180000
+  IMG_PER_BATCH : 8
+  BASE_LR : 0.01
+  WARMUP_ITERS : 2000
+  STEPS : (12000, 16000)
+  CHECKPOINT_PERIOD : 10000
+
+TEST :
+  EVAL_PERIOD : 10000
