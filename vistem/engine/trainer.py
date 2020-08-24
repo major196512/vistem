@@ -2,6 +2,7 @@ import torch
 import torch.optim as optim
 from torch.nn.parallel import DistributedDataParallel
 import numpy as np
+from collections import defaultdict
 
 from vistem.utils import setup_logger, seed_all_rng, Timer
 from vistem import dist
@@ -63,34 +64,39 @@ class Trainer(HookTrainer):
 
     def run_step(self):
         assert self.model.training, "model was changed to eval mode!"
+
+        total_loss = defaultdict(list)
+        total_timer = list()
+
+        for _ in range(self.accumulate):
+            timer = Timer()
+            data = next(self.train_iter)
+            total_timer.append(timer.seconds())
+            timer.pause()
         
-        timer = Timer()
-        data = next(self.train_iter)
-        data_time = timer.seconds()
-        timer.pause()
-
-        loss_dict = self.model(data)
-        losses = sum(loss_dict.values())
-        losses /= self.accumulate
-        losses.backward()
-
-        # use a new stream so the ops don't wait for DDP
-        with torch.cuda.stream(
-            torch.cuda.Stream()
-        ) if losses.device.type == "cuda" else _nullcontext():
-            metrics_dict = loss_dict
-            metrics_dict["data_time"] = data_time
-            self._write_metrics(metrics_dict)
+            loss_dict = self.model(data)
+            losses = sum(loss_dict.values()) / self.accumulate
+            losses.backward()
 
             if not torch.isfinite(losses).all():
                 raise FloatingPointError(f"Loss became infinite or NaN at iteration={self.iter}!\nloss_dict = {loss_dict}")
 
-        if (self.iter + 1) % self.accumulate == 0:
-            # for param in self.model.parameters():
-            #     torch.distributed.all_reduce(param.grad.data)
-            #     param.grad.data /= dist.get_world_size()
-            self.optimizer.step()
-            self.optimizer.zero_grad()
+            for k, v in loss_dict.items() : total_loss[k].append(v.item())
+
+        # use a new stream so the ops don't wait for DDP
+        with torch.cuda.stream(torch.cuda.Stream()) if losses.device.type == "cuda" else _nullcontext():
+            metrics_dict = dict()
+            for k, v in total_loss.items(): 
+                metrics_dict[k] = sum(v) / self.accumulate
+            metrics_dict["data_time"] = sum(total_timer) / self.accumulate
+            self._write_metrics(metrics_dict)
+
+        # for param in self.model.parameters():
+        #     torch.distributed.all_reduce(param.grad.data)
+        #     param.grad.data /= dist.get_world_size()
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
 
     def _write_metrics(self, metrics_dict: dict):
         metrics_dict = {

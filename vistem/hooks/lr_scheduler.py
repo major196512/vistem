@@ -5,7 +5,6 @@ class LRScheduler(HookBase):
     def __init__(self, cfg, optimizer, scheduler):
         self._optimizer = optimizer
         self._scheduler = scheduler
-        self.accumulate = cfg.SOLVER.ACCUMULATE
 
         # NOTE: some heuristics on what LR to summarize
         # summarize the param group with most parameters
@@ -29,6 +28,4 @@ class LRScheduler(HookBase):
     def after_step(self):
         lr = self._optimizer.param_groups[self._best_param_group_id]["lr"]
         self.trainer.storage.put_scalar("lr", lr, smoothing_hint=False)
-        if (self.trainer.iter + 1) % self.accumulate == 0:
-            for _ in range(self.accumulate): 
-                self._scheduler.step()
+        self._scheduler.step()
