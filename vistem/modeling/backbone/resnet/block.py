@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from vistem.modeling.layers import Conv2d, get_norm
+from vistem.modeling.layers.norm.frozen_bn import FrozenBatchNorm2d
+from vistem.utils import weight_init
 
 __all__ = ['BottleneckBlock']
 
@@ -16,7 +18,7 @@ class ResNetBlockBase(nn.Module):
     def freeze(self):
         for p in self.parameters():
             p.requires_grad = False
-        # FrozenBatchNorm2d.convert_frozen_batchnorm(self)
+        FrozenBatchNorm2d.convert_frozen_batchnorm(self)
         return self
 
 
@@ -81,9 +83,9 @@ class BottleneckBlock(ResNetBlockBase):
             norm=get_norm(norm, out_channels),
         )
 
-        # for layer in [self.conv1, self.conv2, self.conv3, self.shortcut]:
-        #     if layer is not None: 
-        #         weight_init.c2_msra_fill(layer)
+        for layer in [self.conv1, self.conv2, self.conv3, self.shortcut]:
+            if layer is not None: 
+                weight_init.c2_msra_fill(layer)
 
         # Zero-initialize the last normalization in each residual branch,
         # so that at the beginning, the residual branch starts with zeros,

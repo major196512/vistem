@@ -99,6 +99,9 @@ class RetinaNet(nn.Module):
         pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
         pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
         self.normalizer = lambda x: (x - pixel_mean) / pixel_std
+
+        self.loss_normalizer = 100  # initialize with any reasonable #fg that's not too small
+        self.loss_normalizer_momentum = 0.9
         self.to(self.device)
 
     def forward(self, batched_inputs):
@@ -141,6 +144,10 @@ class RetinaNet(nn.Module):
         foreground_idxs = (gt_classes >= 0) & (gt_classes != self.num_classes)
         num_foreground = foreground_idxs.sum()
 
+        self.loss_normalizer = self.loss_normalizer_momentum * self.loss_normalizer + (
+            1 - self.loss_normalizer_momentum
+        ) * max(num_foreground, 1)
+
         gt_classes_target = torch.zeros_like(pred_class_logits)
         gt_classes_target[foreground_idxs, gt_classes[foreground_idxs]] = 1
 
@@ -151,7 +158,7 @@ class RetinaNet(nn.Module):
             alpha=self.focal_loss_alpha,
             gamma=self.focal_loss_gamma,
             reduction="sum",
-        ) / max(1, num_foreground)
+        ) / self.loss_normalizer
 
         # regression loss
         loss_box_reg = smooth_l1_loss(
@@ -159,7 +166,7 @@ class RetinaNet(nn.Module):
             gt_anchors_deltas[foreground_idxs],
             beta=self.smooth_l1_loss_beta,
             reduction="sum",
-        ) / max(1, num_foreground)
+        ) / self.loss_normalizer
 
         return {"loss_cls": loss_cls, "loss_box_reg": loss_box_reg}
 

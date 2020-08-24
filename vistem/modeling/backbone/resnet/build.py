@@ -19,13 +19,8 @@ def ResNet(cfg, input_shape):
         out_channels=cfg.MODEL.RESNETS.STEM_OUT_CHANNELS,
         norm=norm,
     )
-    # freeze_at = cfg.MODEL.BACKBONE.FREEZE_AT
-
-    # if freeze_at >= 1:
-    #     for p in stem.parameters():
-    #         p.requires_grad = False
-    #     stem = FrozenBatchNorm2d.convert_frozen_batchnorm(stem)
-
+    
+    freeze_at           = cfg.MODEL.RESNETS.FREEZE_AT
     out_features        = cfg.MODEL.RESNETS.OUT_FEATURES
     depth               = cfg.MODEL.RESNETS.DEPTH
     num_classes         = cfg.MODEL.RESNETS.NUM_CLASSES
@@ -75,4 +70,4 @@ def ResNet(cfg, input_shape):
 
         stages.append(blocks)
 
-    return ResNetBase(stem, stages, out_features=out_features, num_classes=num_classes)
+    return ResNetBase(stem, stages, out_features=out_features, num_classes=num_classes).freeze(freeze_at)
