@@ -42,7 +42,7 @@ class ResNetBase(Backbone):
             # Sec 5.1 in "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour":
             # "The 1000-way fully-connected layer is initialized by
             # drawing weights from a zero-mean Gaussian with standard deviation of 0.01."
-            nn.init.normal_(self.linear.weight)#, stddev=0.01)
+            nn.init.normal_(self.linear.weight, stddev=0.01)
             name = "linear"
 
         if out_features is None:
@@ -72,6 +72,15 @@ class ResNetBase(Backbone):
                 outputs["linear"] = x
 
         return outputs
+
+    def freeze(self, freeze_at=0):
+        if freeze_at >= 1:
+            self.stem.freeze()
+        for idx, (stage, _) in enumerate(self.stages_and_names, start=2):
+            if freeze_at >= idx:
+                for block in stage.children():
+                    block.freeze()
+        return self
 
     def output_shape(self):
         print(self._out_features)

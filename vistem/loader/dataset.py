@@ -1,23 +1,51 @@
-import random
 import torch
 from torch.utils.data import Dataset, IterableDataset
 
+import numpy as np
+import random
+import pickle
+
 from vistem.utils.logger import setup_logger
+from vistem.utils.serialize import PicklableWrapper
 
 __all__ = ['ListDataset', 'DictionaryDataset', 'MapDataset', 'AspectRatioGroupedDataset']
 
 _logger = setup_logger(__name__)
 
 class ListDataset(Dataset):
-    def __init__(self, cfg, data):
+    def __init__(self, cfg, data, copy: bool = True, serialize: bool = True):
         self._data = data
+        self._copy = copy
+        self._serialize = serialize
+
+        def _serialize(data):
+            buffer = pickle.dumps(data, protocol=-1)
+            return np.frombuffer(buffer, dtype=np.uint8)
+
+        if self._serialize:
+            _logger.info(f"Serializing {len(self._data)} elements to byte tensors and concatenating them all ...")
+            self._data = [_serialize(x) for x in self._data]
+            self._addr = np.asarray([len(x) for x in self._data], dtype=np.int64)
+            self._addr = np.cumsum(self._addr)
+            self._data = np.concatenate(self._data)
+            _logger.info(f"Serialized dataset takes {(len(self._data) / 1024 ** 2):.2f} MiB")
 
     def __len__(self):
-        return len(self._data)
+        if self._serialize:
+            return len(self._addr)
+        else:
+            return len(self._data)
 
     def __getitem__(self, idx):
-        return self._data[idx]
-
+        if self._serialize:
+            start_addr = 0 if idx == 0 else self._addr[idx - 1].item()
+            end_addr = self._addr[idx].item()
+            bytes = memoryview(self._data[start_addr:end_addr])
+            return pickle.loads(bytes)
+        elif self._copy:
+            return copy.deepcopy(self._data[idx])
+        else:
+            return self._data[idx]
 
 class DictionaryDataset(Dataset):
     def __init__(self, cfg, data):
@@ -36,8 +64,8 @@ class DictionaryDataset(Dataset):
 class MapDataset(Dataset):
     def __init__(self, dataset, map_func):
         self._dataset = dataset
-        # self._map_func = PicklableWrapper(map_func)  # wrap so that a lambda will work
-        self._map_func = map_func
+        self._map_func = PicklableWrapper(map_func)  # wrap so that a lambda will work
+        # self._map_func = map_func
 
         self._rng = random.Random(42)
         self._fallback_candidates = set(range(len(dataset)))

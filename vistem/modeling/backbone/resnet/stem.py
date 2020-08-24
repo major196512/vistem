@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from vistem.modeling.layers.norm.frozen_bn import FrozenBatchNorm2d
 from vistem.modeling.layers import Conv2d, get_norm
 from vistem.utils import weight_init
 
@@ -26,6 +27,12 @@ class BasicStem(nn.Module):
         x = F.relu_(x)
         x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         return x
+
+    def freeze(self):
+        for p in self.parameters():
+            p.requires_grad = False
+        FrozenBatchNorm2d.convert_frozen_batchnorm(self)
+        return self
 
     @property
     def out_channels(self):

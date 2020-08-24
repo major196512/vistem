@@ -2,6 +2,7 @@ from yacs.config import CfgNode as CN
 
 _RESNETS = CN()
 
+_RESNETS.FREEZE_AT = 2
 _RESNETS.DEPTH = 50
 _RESNETS.NUM_CLASSES = 0
 _RESNETS.OUT_FEATURES = ["res5"]
