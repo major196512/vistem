@@ -2,11 +2,21 @@ import torch
 from collections import defaultdict
 from .history import HistoryBuffer
 
-__all__ = [
-    "EventStorage",
-]
+__all__ = ["get_event_storage", "EventStorage"]
 
 _CURRENT_STORAGE = []
+
+def get_event_storage():
+    """
+    Returns:
+        The :class:`EventStorage` object that's currently being used.
+        Throws an error if no :class:`EventStorage` is currently enabled.
+    """
+    assert len(
+        _CURRENT_STORAGE
+    ), "get_event_storage() has to be called inside a 'with EventStorage(...)' context!"
+    return _CURRENT_STORAGE[-1]
+
 
 class EventStorage:
     def __init__(self, start_iter=0):
@@ -83,6 +93,9 @@ class EventStorage:
     def histories(self):
         return self._history
         
+    def clear_images(self):
+        self._vis_data = []
+
     def __enter__(self):
         _CURRENT_STORAGE.append(self)
         return self
