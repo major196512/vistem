@@ -1,0 +1,11 @@
+BASE_CFG : './configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml'
+OUTPUT_DIR : './output_voc/retinanet_R50_FPN_1x_2gpu'
+SEED : 0
+
+SOLVER :
+  IMG_PER_BATCH : 4
+  BASE_LR : 0.0025
+  CHECKPOINT_PERIOD : 5000
+
+TEST :
+  EVAL_PERIOD : 5000
