@@ -1,7 +1,7 @@
 import os
 
 from vistem.loader import MetadataCatalog, DatasetCatalog
-from .load_json import load_coco_json
+from .load_data import load_coco_json
 from .meta import get_coco_instances_meta
 
 __all__ = ['register_all_coco']
