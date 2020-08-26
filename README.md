@@ -22,15 +22,18 @@ ln -s $DATA data
 See [here](./vistem/loader/data) for more information about `$DATA`.
 
 # Performance
+We train models with 8-gpu and 16 images per batch.
+
+When training using Gradient Accumulation, you must assign a accumulate variable in config file.
 
 ## Pascal VOC
-| Meta Architecture | Accumulate| BBox AP   | 
-| :---:             | :---:     | :---:     |
-| RetinaNet         | 1         | 56.282    | 
-| RetinaNet         | 3         | 51.011    |
-| Faster RCNN       | In Progress|          |
-| CornerNet         | In Progress|          |
-| RepPoints         | In Progress|          |
+| Meta Architecture | Accumulate| BBox AP   | Config File   |
+| :---:             | :---:     | :---:     | :---:         |
+| RetinaNet         | 1         | 56.282    | [R50_FPN_1x_8gpu](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml) |
+| RetinaNet         | 4         | 51.011    | [R50_FPN_1x_2gpu_4acc](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_2gpu_4acc.yaml) |
+| Faster RCNN       | In Progress|          | |
+| CornerNet         | In Progress|          | |
+| RepPoints         | In Progress|          | |
 
 
 
