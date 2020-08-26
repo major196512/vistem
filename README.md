@@ -19,7 +19,7 @@ cd vistem
 ln -s $PRETRAINED pretrained_weights
 ln -s $DATA data
 ```
-See [DATA.md](./vistem/loader/data/DATA.md) for more information about `$DATA`.
+See [here](./vistem/loader/data) for more information about `$DATA`.
 
 # Performance
 
