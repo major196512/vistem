@@ -9,10 +9,11 @@ from vistem.modeling import Box2BoxTransform, Matcher, detector_postprocess
 from vistem.modeling.backbone import build_backbone
 from vistem.modeling.anchors import build_anchor_generator
 from vistem.modeling.layers import Conv2d, batched_nms
-from vistem.modeling.model_utils import permute_to_N_HWA_K, permute_all_cls_and_box_to_N_HWA_K_and_concat
+from vistem.modeling.model_utils import permute_to_N_HWA_K, pairwise_iou
 
 from vistem.structures import ImageList, ShapeSpec, Boxes, Instances
 from vistem.utils.losses import sigmoid_focal_loss_jit, smooth_l1_loss
+from vistem.utils.event import get_event_storage
 
 __all__ = ['Retinanet']
 
@@ -53,7 +54,6 @@ class RetinaNet(DefaultMetaArch):
 
         self.loss_normalizer = 100  # initialize with any reasonable #fg that's not too small
         self.loss_normalizer_momentum = 0.9
-        self.to(self.device)
 
     def forward(self, batched_inputs):
         images, gt_instances = self.preprocess_image(batched_inputs)
@@ -63,6 +63,9 @@ class RetinaNet(DefaultMetaArch):
         anchors = self.anchor_generator(features)
         box_cls, box_delta = self.head(features)
 
+        box_cls = [permute_to_N_HWA_K(x, self.num_classes) for x in box_cls]
+        box_delta = [permute_to_N_HWA_K(x, 4) for x in box_delta]
+
         if self.training:
             gt_classes, gt_anchors_reg_deltas = self.get_ground_truth(anchors, gt_instances)
             losses =  self.losses(gt_classes, gt_anchors_reg_deltas, box_cls, box_delta)
@@ -70,18 +73,12 @@ class RetinaNet(DefaultMetaArch):
             if self.vis_period > 0:
                 storage = get_event_storage()
                 if storage.iter % self.vis_period == 0:
-                    box_cls = [permute_to_N_HWA_K(x, self.num_classes) for x in box_cls]
-                    box_delta = [permute_to_N_HWA_K(x, 4) for x in box_delta]
-
                     results = self.inference(anchors, box_cls, box_delta, images.image_sizes)
                     self.visualize_training(batched_inputs, results)
 
             return losses
 
         else:
-            box_cls = [permute_to_N_HWA_K(x, self.num_classes) for x in box_cls]
-            box_delta = [permute_to_N_HWA_K(x, 4) for x in box_delta]
-
             results = self.inference(anchors, box_cls, box_delta, images.image_sizes)
             processed_results = []
             for results_per_image, input_per_image, image_size in zip(results, batched_inputs, images.image_sizes):
@@ -93,9 +90,9 @@ class RetinaNet(DefaultMetaArch):
             return processed_results
 
     def losses(self, gt_classes, gt_anchors_deltas, pred_class_logits, pred_anchor_deltas):
-        pred_class_logits, pred_anchor_deltas = permute_all_cls_and_box_to_N_HWA_K_and_concat(
-            pred_class_logits, pred_anchor_deltas, self.num_classes
-        )  # Shapes: (N x R, K) and (N x R, 4), respectively.
+        # Shapes: (N x R, K) and (N x R, 4), respectively.
+        pred_class_logits = torch.cat(pred_class_logits, dim=1).view(-1, self.num_classes)
+        pred_anchor_deltas = torch.cat(pred_anchor_deltas, dim=1).view(-1, 4)
 
         gt_classes = gt_classes.flatten()
         gt_anchors_deltas = gt_anchors_deltas.view(-1, 4)
@@ -220,12 +217,6 @@ class RetinaNet(DefaultMetaArch):
         result.scores = scores_all[keep]
         result.pred_classes = class_idxs_all[keep]
         return result
-
-    def preprocess_image(self, batched_inputs):
-        images = [x["image"].to(self.device) for x in batched_inputs]
-        images = [self.normalizer(x) for x in images]
-        images = ImageList.from_tensors(images, self.backbone.size_divisibility)
-        return images
 
 class RetinaNetHead(nn.Module):
     def __init__(self, cfg, input_shape: List[ShapeSpec]):
