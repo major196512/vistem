@@ -16,3 +16,9 @@ MODEL :
   RETINANET :
     IN_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']
     NUM_CONVS : 4
+
+SOLVER :
+  OPTIMIZER : 'SGD'
+  ACCUMULATE : 1
+  IMG_PER_BATCH : 16
+  BASE_LR : 0.01
