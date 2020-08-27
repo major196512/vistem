@@ -1,74 +1,25 @@
 import torch
 import torch.nn as nn
 
-import numpy as np
 import math
 from typing import List
 
-from . import META_ARCH_REGISTRY
+from . import META_ARCH_REGISTRY, DefaultMetaArch
 from vistem.modeling import Box2BoxTransform, Matcher, detector_postprocess
 from vistem.modeling.backbone import build_backbone
 from vistem.modeling.anchors import build_anchor_generator
 from vistem.modeling.layers import Conv2d, batched_nms
+from vistem.modeling.model_utils import permute_to_N_HWA_K, permute_all_cls_and_box_to_N_HWA_K_and_concat
 
 from vistem.structures import ImageList, ShapeSpec, Boxes, Instances
 from vistem.utils.losses import sigmoid_focal_loss_jit, smooth_l1_loss
 
-from vistem.utils.event import get_event_storage
-from vistem.utils.visualizer import Visualizer, convert_image_to_rgb
-
 __all__ = ['Retinanet']
 
-def pairwise_iou(boxes1: Boxes, boxes2: Boxes) -> torch.Tensor:
-    area1 = boxes1.area()
-    area2 = boxes2.area()
-
-    boxes1, boxes2 = boxes1.tensor, boxes2.tensor
-
-    lt = torch.max(boxes1[:, None, :2], boxes2[:, :2])  # [N,M,2]
-    rb = torch.min(boxes1[:, None, 2:], boxes2[:, 2:])  # [N,M,2]
-
-    wh = (rb - lt).clamp(min=0)  # [N,M,2]
-    inter = wh[:, :, 0] * wh[:, :, 1]  # [N,M]
-
-    # handle empty boxes
-    iou = torch.where(
-        inter > 0,
-        inter / (area1[:, None] + area2 - inter),
-        torch.zeros(1, dtype=inter.dtype, device=inter.device),
-    )
-    return iou
-
-def permute_to_N_HWA_K(tensor, K):
-    """
-    Transpose/reshape a tensor from (N, (A x K), H, W) to (N, (HxWxA), K)
-    """
-    assert tensor.dim() == 4, tensor.shape
-    N, _, H, W = tensor.shape
-    tensor = tensor.view(N, -1, K, H, W)
-    tensor = tensor.permute(0, 3, 4, 1, 2)
-    tensor = tensor.reshape(N, -1, K)  # Size=(N,HWA,K)
-    return tensor
-
-def permute_all_cls_and_box_to_N_HWA_K_and_concat(box_cls, box_delta, num_classes=80):
-    # for each feature level, permute the outputs to make them be in the
-    # same format as the labels. Note that the labels are computed for
-    # all feature levels concatenated, so we keep the same representation
-    # for the objectness and the box_delta
-    box_cls_flattened = [permute_to_N_HWA_K(x, num_classes) for x in box_cls]
-    box_delta_flattened = [permute_to_N_HWA_K(x, 4) for x in box_delta]
-    # concatenate on the first dimension (representing the feature levels), to
-    # take into account the way the labels were generated (with all feature maps
-    # being concatenated as well)
-    box_cls = torch.cat(box_cls_flattened, dim=1).view(-1, num_classes)
-    box_delta = torch.cat(box_delta_flattened, dim=1).view(-1, 4)
-    return box_cls, box_delta
-
-
 @META_ARCH_REGISTRY.register()
-class RetinaNet(nn.Module):
+class RetinaNet(DefaultMetaArch):
     def __init__(self, cfg):
-        super().__init__()
+        super().__init__(cfg)
         self.device = torch.device(cfg.DEVICE)
 
         self.num_classes              = cfg.MODEL.RETINANET.NUM_CLASSES
@@ -82,9 +33,6 @@ class RetinaNet(nn.Module):
         self.topk_candidates          = cfg.MODEL.RETINANET.TOPK_CANDIDATES_TEST
         self.nms_threshold            = cfg.MODEL.RETINANET.NMS_THRESH_TEST
         self.max_detections_per_image = cfg.TEST.DETECTIONS_PER_IMAGE
-        # Vis parameters
-        self.vis_period               = cfg.VIS_PERIOD
-        self.input_format             = cfg.INPUT.FORMAT
         
         self.backbone = build_backbone(cfg)
         for feat in self.in_features:
@@ -102,40 +50,13 @@ class RetinaNet(nn.Module):
             cfg.MODEL.RETINANET.IOU_LABELS,
             allow_low_quality_matches=True,
         )
-        
-        pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)
-        pixel_std = torch.Tensor(cfg.MODEL.PIXEL_STD).to(self.device).view(3, 1, 1)
-        self.normalizer = lambda x: (x - pixel_mean) / pixel_std
 
         self.loss_normalizer = 100  # initialize with any reasonable #fg that's not too small
         self.loss_normalizer_momentum = 0.9
         self.to(self.device)
 
-    def visualize_training(self, batched_inputs, results):
-        assert len(batched_inputs) == len(results)
-        storage = get_event_storage()
-        max_boxes = 20
-
-        img = batched_inputs[0]["image"]
-        img = convert_image_to_rgb(img.permute(1, 2, 0), self.input_format)
-        v_gt = Visualizer(img)
-        v_gt = v_gt.overlay_instances(boxes=batched_inputs[0]["instances"].gt_boxes)
-        anno_img = v_gt.get_image()
-        processed_results = detector_postprocess(results[0], img.shape[0], img.shape[1])
-        predicted_boxes = processed_results.pred_boxes.tensor.detach().cpu().numpy()
-
-        v_pred = Visualizer(img)
-        v_pred = v_pred.overlay_instances(boxes=predicted_boxes[0:max_boxes])
-        prop_img = v_pred.get_image()
-        vis_img = np.vstack((anno_img, prop_img))
-        vis_img = vis_img.transpose(2, 0, 1)
-        vis_name = f"Top: GT bounding boxes; Bottom: {max_boxes} Highest Scoring Results"
-        storage.put_image(vis_name, vis_img)
-
     def forward(self, batched_inputs):
-        images = self.preprocess_image(batched_inputs)
-        if "instances" in batched_inputs[0]:
-            gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
+        images, gt_instances = self.preprocess_image(batched_inputs)
 
         features = self.backbone(images.tensor)
         features = [features[f] for f in self.in_features]
@@ -219,6 +140,7 @@ class RetinaNet(nn.Module):
         for anchors_per_image, targets_per_image in zip(anchors, targets):
             match_quality_matrix = pairwise_iou(targets_per_image.gt_boxes, anchors_per_image)
             gt_matched_idxs, anchor_labels = self.matcher(match_quality_matrix)
+            del match_quality_matrix
 
             # ground truth box regression
             matched_gt_boxes = targets_per_image[gt_matched_idxs].gt_boxes
