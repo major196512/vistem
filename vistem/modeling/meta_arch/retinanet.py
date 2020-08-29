@@ -15,14 +15,12 @@ from vistem.structures import ImageList, ShapeSpec, Boxes, Instances
 from vistem.utils.losses import sigmoid_focal_loss_jit, smooth_l1_loss
 from vistem.utils.event import get_event_storage
 
-__all__ = ['Retinanet']
+__all__ = ['RetinaNet']
 
 @META_ARCH_REGISTRY.register()
 class RetinaNet(DefaultMetaArch):
     def __init__(self, cfg):
         super().__init__(cfg)
-        self.device = torch.device(cfg.DEVICE)
-
         self.num_classes              = cfg.MODEL.RETINANET.NUM_CLASSES
         self.in_features              = cfg.MODEL.RETINANET.IN_FEATURES
         # Loss parameters:
@@ -34,7 +32,8 @@ class RetinaNet(DefaultMetaArch):
         self.topk_candidates          = cfg.MODEL.RETINANET.TOPK_CANDIDATES_TEST
         self.nms_threshold            = cfg.MODEL.RETINANET.NMS_THRESH_TEST
         self.max_detections_per_image = cfg.TEST.DETECTIONS_PER_IMAGE
-        
+
+        # Backbone Network
         self.backbone = build_backbone(cfg)
         for feat in self.in_features:
             assert feat in self.backbone.out_features, f"'{feat}' is not in backbone({self.backbone.out_features})"

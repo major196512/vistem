@@ -10,8 +10,8 @@ from vistem.structures import ImageList
 class ProposalNetwork(DefaultMetaArch):
     def __init__(self, cfg):
         super().__init__(cfg)
-        self.device = torch.device(cfg.DEVICE)
 
+        # Backbone Network
         self.backbone = build_backbone(cfg)
         self.proposal_generator = build_proposal_generator(cfg, self.backbone.output_shape())
 
@@ -19,8 +19,8 @@ class ProposalNetwork(DefaultMetaArch):
         images, gt_instances = self.preprocess_image(batched_inputs)
         features = self.backbone(images.tensor)
 
-        # proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
-        proposal_losses = self.proposal_generator(images, features, gt_instances)
+        proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
+        
         # In training, the proposals are not useful at all but we generate them anyway.
         # This makes RPN-only models about 5% slower.
         if self.training:
