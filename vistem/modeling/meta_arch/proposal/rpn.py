@@ -2,16 +2,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from typing import List
+from typing import List, Tuple
 
 from . import PROPOSAL_REGISTRY
 from vistem.modeling.meta_arch import DefaultMetaArch
 from vistem.modeling import Box2BoxTransform, Matcher
 from vistem.modeling.anchors import build_anchor_generator
-from vistem.modeling.layers import Conv2d
+from vistem.modeling.layers import Conv2d, batched_nms
 from vistem.modeling.model_utils import permute_to_N_HWA_K, pairwise_iou
 
-from vistem.structures import ImageList, Boxes
+from vistem.structures import ImageList, Boxes, Instances
 from vistem.utils.losses import smooth_l1_loss
 from vistem.utils.event import get_event_storage
 
@@ -19,8 +19,6 @@ from vistem.utils.event import get_event_storage
 class RPN(DefaultMetaArch):
     def __init__(self, cfg, input_shape):
         super().__init__(cfg)
-        self.device = torch.device(cfg.DEVICE)
-
         self.in_features                = cfg.MODEL.RPN.IN_FEATURES
         self.batch_size_per_image       = cfg.MODEL.RPN.BATCH_SIZE_PER_IMAGE
         self.positive_fraction          = cfg.MODEL.RPN.POSITIVE_FRACTION
@@ -31,6 +29,11 @@ class RPN(DefaultMetaArch):
             'loss_rpn_cls' : cfg.MODEL.RPN.LOSS_WEIGHT,
             'loss_rpn_loc' : cfg.MODEL.RPN.BBOX_REG_LOSS_WEIGHT
         }
+
+        self.nms_threshold              = cfg.MODEL.RPN.NMS_THRESH
+        self.pre_nms_topk               = {True : cfg.MODEL.RPN.PRE_NMS_TOPK_TRAIN, False : cfg.MODEL.RPN.PRE_NMS_TOPK_TEST}
+        self.post_nms_topk              = {True : cfg.MODEL.RPN.POST_NMS_TOPK_TRAIN, False : cfg.MODEL.RPN.POST_NMS_TOPK_TEST}
+        self.min_box_size               = cfg.MODEL.RPN.MIN_SIZE
 
         if cfg.MODEL.RPN.HEAD_NAME == 'StandardRPNHead' :
             self.rpn_head = StandardRPNHead(cfg, [input_shape[f] for f in self.in_features])
@@ -59,10 +62,8 @@ class RPN(DefaultMetaArch):
         else:
             losses = {}
 
-        # proposals = self.predict_proposals(
-        #     anchors, pred_objectness_logits, pred_anchor_deltas, images.image_sizes
-        # )
-        return losses
+        proposals = self.inference(anchors, box_cls, box_delta, images.image_sizes)
+        return proposals, losses
 
     @torch.jit.unused
     def losses(self, gt_classes, gt_anchors_deltas, pred_class_logits, pred_anchor_deltas):
@@ -144,7 +145,7 @@ class RPN(DefaultMetaArch):
             gt_anchors_deltas.append(gt_anchors_reg_deltas_i)
 
         return torch.stack(gt_classes), torch.stack(gt_anchors_deltas)
-        
+    
     def subsample_labels(self, labels: torch.Tensor, num_samples: int, positive_fraction: float, bg_label: int):
         pos = ((labels != -1) & (labels != bg_label))
         if pos.dim()==0 : pos = pos.unsqueeze(0).nonzero().unbind(1)[0]
@@ -168,6 +169,78 @@ class RPN(DefaultMetaArch):
 
         return pos_idx, neg_idx
 
+    # TODO: use torch.no_grad when torchscript supports it.
+    # https://github.com/pytorch/pytorch/pull/41371
+    def inference(self, anchors, box_cls, box_delta, image_sizes):
+        results : List[Instances] = []
+        for img_idx, image_size in enumerate(image_sizes):
+            pred_cls_per_image = [x[img_idx].detach() for x in box_cls]
+            pred_delta_per_image = [x[img_idx].detach() for x in box_delta]
+            results_per_image = self.inference_single_image(
+                anchors[img_idx], pred_cls_per_image, pred_delta_per_image, tuple(image_size)
+            )
+            results.append(results_per_image)
+
+        return results
+
+            
+    def inference_single_image(self, anchors, box_cls, box_delta, image_size):
+        boxes_all = []
+        scores_all = []
+        feat_lvl_all = []
+
+        # Iterate over every feature level
+        for lvl_id, (box_cls_i, box_reg_i, anchors_i) in enumerate(zip(box_cls, box_delta, anchors)):
+            box_cls_i = box_cls_i.flatten()
+
+            # Keep top k top scoring indices only.
+            num_topk = min(self.pre_nms_topk[int(self.training)], box_reg_i.size(0))
+            # torch.sort is actually faster than .topk (at least on GPUs)
+            predicted_prob, topk_idxs = box_cls_i.sort(descending=True)
+            predicted_prob = predicted_prob[:num_topk]
+            topk_idxs = topk_idxs[:num_topk]
+
+            feat_lvl = torch.full((num_topk,), lvl_id, dtype=torch.int64, device=self.device)
+
+            # predict boxes
+            box_reg_i = box_reg_i[topk_idxs]
+            anchors_i = anchors_i[topk_idxs]
+            boxes = self.box2box_transform.apply_deltas(box_reg_i, anchors_i.tensor)
+            predicted_boxes = Boxes(boxes)
+
+            valid_mask = torch.isfinite(predicted_boxes.tensor).all(dim=1) & torch.isfinite(predicted_prob)
+            if not valid_mask.all():
+                if self.training:
+                    raise FloatingPointError(
+                        "Predicted boxes or scores contain Inf/NaN. Training has diverged."
+                    )
+                predicted_boxes = predicted_boxes[valid_mask]
+                predicted_prob = predicted_prob[valid_mask]
+                feat_lvl = feat_lvl[valid_mask]
+            predicted_boxes.clip(image_size)
+
+            # filter empty boxes
+            keep = predicted_boxes.nonempty(threshold=self.min_box_size)
+            if keep.sum().item() != len(boxes):
+                predicted_boxes, predicted_prob, feat_lvl = predicted_boxes[keep], predicted_prob[keep], feat_lvl[keep]
+
+            boxes_all.append(predicted_boxes)
+            scores_all.append(predicted_prob)
+            feat_lvl_all.append(feat_lvl)
+
+        scores_all, feat_lvl_all = [
+            torch.cat(x) for x in [scores_all, feat_lvl_all]
+        ]
+        boxes_all = Boxes.cat(boxes_all)
+
+        keep = batched_nms(boxes_all.tensor, scores_all, feat_lvl_all, self.nms_threshold)
+        keep = keep[:self.post_nms_topk[int(self.training)]]
+
+        result = Instances(image_size)
+        result.pred_boxes = boxes_all[keep]
+        result.scores = scores_all[keep]
+
+        return result
 
 class StandardRPNHead(nn.Module):
     def __init__(self, cfg, input_shape):

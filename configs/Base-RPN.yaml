@@ -16,10 +16,10 @@ MODEL :
     IN_FEATURES : ['res2', 'res3', 'res4', 'res5']
   RPN :
     IN_FEATURES : ["p2", "p3", "p4", "p5", "p6"]
-    # PRE_NMS_TOPK_TRAIN: 2000  # Per FPN level
-    # PRE_NMS_TOPK_TEST: 1000  # Per FPN level
-    # POST_NMS_TOPK_TRAIN: 1000
-    # POST_NMS_TOPK_TEST: 1000
+    PRE_NMS_TOPK_TRAIN: 2000  # Per FPN level
+    PRE_NMS_TOPK_TEST: 1000  # Per FPN level
+    POST_NMS_TOPK_TRAIN: 1000
+    POST_NMS_TOPK_TEST: 1000
 
 SOLVER :
   OPTIMIZER : 'SGD'
