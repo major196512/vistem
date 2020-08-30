@@ -237,7 +237,7 @@ class RPN(DefaultMetaArch):
         keep = keep[:self.post_nms_topk[int(self.training)]]
 
         result = Instances(image_size)
-        result.pred_boxes = boxes_all[keep]
+        result.proposal_boxes = boxes_all[keep]
         result.scores = scores_all[keep]
 
         return result
