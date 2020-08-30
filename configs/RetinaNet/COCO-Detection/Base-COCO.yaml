@@ -1,4 +1,4 @@
-BASE_CFG : './configs/Base-RetinaNet.yaml'
+BASE_CFG : './configs/RetinaNet/Base-RetinaNet.yaml'
 
 LOADER :
   TRAIN_DATASET : ('coco_2017_train', )

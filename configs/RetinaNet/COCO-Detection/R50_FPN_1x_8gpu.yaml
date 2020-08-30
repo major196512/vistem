@@ -1,4 +1,4 @@
-BASE_CFG : './configs/RetinaNet/COCO-Detection.yaml'
+BASE_CFG : './configs/RetinaNet/COCO-Detection/Base-COCO.yaml'
 OUTPUT_DIR : './outputs/retinanet_R50_FPN_1x_8gpu'
 SEED : 0
 
