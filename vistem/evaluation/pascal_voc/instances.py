@@ -17,20 +17,28 @@ class VOCInstanceEvaluator:
         image_id = input["image_id"]
         instances = output["instances"].to(self._cpu_device)
 
-        scores = instances.scores.tolist()
+        scores = instances.pred_scores.tolist()
         classes = instances.pred_classes.tolist()
 
-        boxes = instances.pred_boxes.tensor.numpy()
-        boxes = BoxMode.convert(boxes, self.VISTEM_BOX_MODE, self.VOC_BOX_MODE)
+        has_box = instances.has('pred_boxes')
+        has_mask = instances.has("pred_masks")
+        has_keypoint = instances.has("pred_keypoints")
+        
+        if has_box:
+            boxes = instances.pred_boxes.tensor.numpy()
+            boxes = BoxMode.convert(boxes, self.VISTEM_BOX_MODE, self.VOC_BOX_MODE)
+            boxes = boxes.tolist()
 
-        for box, score, cls in zip(boxes, scores, classes):
-            xmin, ymin, xmax, ymax = box
-            # The inverse of data loading logic in `loader/data/pascal_voc/load_data.py`
-            xmin += 1
-            ymin += 1
-            self._predictions[cls].append(
-                f"{image_id} {score:.3f} {xmin:.1f} {ymin:.1f} {xmax:.1f} {ymax:.1f}"
-            )
+        num_instances = len(scores)
+        for idx in range(num_instances):
+            result = {
+                'image_id' : image_id,
+                'score' : scores[idx]
+            }
+
+            if has_box : result['pred_box'] = boxes[idx]
+            
+            self._predictions[classes[idx]].append(result)
 
     def _eval_instances(self, predictions):
         results = OrderedDict()
@@ -40,10 +48,20 @@ class VOCInstanceEvaluator:
 
             aps = defaultdict(list)  # iou -> ap per class
             for cls_id, cls_name in enumerate(self._category):
-                lines = predictions.get(cls_id, [""])
+                pred_cls = predictions.get(cls_id, None)
+                if pred_cls is None : continue
 
                 with open(res_file_template.format(cls_name), "w") as f:
-                    f.write("\n".join(lines))
+                    for pred in pred_cls:
+                        line = f"{pred['image_id']} {pred['score']:.3f}"
+                        if 'pred_box' in pred :
+                            xmin, ymin, xmax, ymax = pred['pred_box']
+                            # The inverse of data loading logic in `loader/data/pascal_voc/load_data.py`
+                            xmin += 1
+                            ymin += 1
+                            line = f"{line} {xmin:.1f} {ymin:.1f} {xmax:.1f} {ymax:.1f}"
+
+                        f.write(f'{line}\n')
 
                 for thresh in range(50, 100, 5):
                     rec, prec, ap = voc_eval(

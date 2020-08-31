@@ -48,8 +48,8 @@ class VOCEvaluator(Evaluator, VOCInstanceEvaluator):
 
     def process(self, inputs, outputs):
         for input, output in zip(inputs, outputs):
-            if 'instances' in output : 
-                self._instances_to_voc(input, output)
+            if 'proposals' in output : pass
+            if 'instances' in output : self._instances_to_voc(input, output)
             
 
     def evaluate(self):

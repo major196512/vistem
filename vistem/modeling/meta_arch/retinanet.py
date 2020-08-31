@@ -213,7 +213,7 @@ class RetinaNet(DefaultMetaArch):
 
         result = Instances(image_size)
         result.pred_boxes = Boxes(boxes_all[keep])
-        result.scores = scores_all[keep]
+        result.pred_scores = scores_all[keep]
         result.pred_classes = class_idxs_all[keep]
         return result
 
