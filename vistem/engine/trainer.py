@@ -24,7 +24,9 @@ class Trainer(HookTrainer):
         if cfg.SEED < 0 : cfg.SEED = dist.shared_random_seed()
         self._seed = cfg.SEED
         seed_all_rng(self._seed)
+        
         self._logger.debug(f'Config File : \n{cfg}')
+        if cfg.OUTPUT_DIR and not os.path.isdir(cfg.OUTPUT_DIR) : os.makedirs(cfg.OUTPUT_DIR)
         with open(os.path.join(cfg.OUTPUT_DIR, 'config'), 'w') as f:
             f.write(cfg.dump())
         
