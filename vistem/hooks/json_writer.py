@@ -74,6 +74,7 @@ class JSONWriter(HookBase):
         self._last_write = max(all_iters)
 
         for itr, scalars_per_iter in to_save.items():
+            if self._last_write != iter : continue
             scalars_per_iter["iteration"] = itr
             self._file_handle.write(json.dumps(round_floats(scalars_per_iter), sort_keys=True) + "\n")
         self._file_handle.flush()
