@@ -1,6 +1,8 @@
 import torch
 import torch.optim as optim
 from torch.nn.parallel import DistributedDataParallel
+
+import os
 import numpy as np
 from collections import defaultdict
 
@@ -23,6 +25,8 @@ class Trainer(HookTrainer):
         self._seed = cfg.SEED
         seed_all_rng(self._seed)
         self._logger.debug(f'Config File : \n{cfg}')
+        with open(os.path.join(cfg.OUTPUT_DIR, 'config'), 'w') as f:
+            f.write(cfg.dump())
         
         self.train_loader = build_train_loader(cfg)
         self.test_loader = build_test_loader(cfg)
