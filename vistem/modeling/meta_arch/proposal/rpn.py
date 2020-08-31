@@ -238,7 +238,7 @@ class RPN(DefaultMetaArch):
 
         result = Instances(image_size)
         result.proposal_boxes = boxes_all[keep]
-        result.scores = scores_all[keep]
+        result.proposal_scores = scores_all[keep]
 
         return result
 
