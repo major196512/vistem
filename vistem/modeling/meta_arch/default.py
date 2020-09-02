@@ -48,7 +48,10 @@ class DefaultMetaArch(nn.Module):
 
         if "instances" in batched_inputs[0]:
             gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
-        else:
-            gt_instances = None
+        else : gt_instances = None
 
-        return images, gt_instances
+        if "proposals" in batched_inputs[0]:
+            proposals = [x["proposals"].to(self.device) for x in batched_inputs]
+        else : proposals = None
+
+        return images, gt_instances, proposals

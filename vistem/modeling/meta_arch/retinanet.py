@@ -55,7 +55,7 @@ class RetinaNet(DefaultMetaArch):
         self.loss_normalizer_momentum = 0.9
 
     def forward(self, batched_inputs):
-        images, gt_instances = self.preprocess_image(batched_inputs)
+        images, gt_instances, _ = self.preprocess_image(batched_inputs)
 
         features = self.backbone(images.tensor)
         features = [features[f] for f in self.in_features]

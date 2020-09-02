@@ -17,7 +17,7 @@ class ProposalNetwork(DefaultMetaArch):
         self.proposal_generator = build_proposal_generator(cfg, self.backbone.output_shape())
 
     def forward(self, batched_inputs):
-        images, gt_instances = self.preprocess_image(batched_inputs)
+        images, gt_instances, _ = self.preprocess_image(batched_inputs)
         features = self.backbone(images.tensor)
 
         proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
