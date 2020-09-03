@@ -26,6 +26,11 @@ MODEL :
     IN_FEATURES : ["p2", "p3", "p4", "p5"]
     IOU_THRESHOLDS : [0.5]
     IOU_LABELS : [0, 1]
+    BOX_POOLER_RESOLUTION : 7
+    BOX_HEAD_NUM_FC : 2
+
+# NAME: "FastRCNNConvFCHead"
+# NUM_FC: 2
 
 SOLVER :
   OPTIMIZER : 'SGD'
