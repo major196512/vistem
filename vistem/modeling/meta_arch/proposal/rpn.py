@@ -6,7 +6,8 @@ from typing import List, Tuple
 
 from . import PROPOSAL_REGISTRY
 from vistem.modeling.meta_arch import DefaultMetaArch
-from vistem.modeling import Box2BoxTransform, Matcher
+
+from vistem.modeling import Box2BoxTransform, Matcher, subsample_labels
 from vistem.modeling.anchors import build_anchor_generator
 from vistem.modeling.layers import Conv2d, batched_nms
 from vistem.modeling.model_utils import permute_to_N_HWA_K, pairwise_iou
@@ -136,7 +137,7 @@ class RPN(DefaultMetaArch):
             #     anchors_inside_image = anchors_per_image.inside_box(image_size_i, self.anchor_boundary_thresh)
             #     gt_classes_i[~anchors_inside_image] = -1
 
-            pos_idx, neg_idx = self.subsample_labels(gt_classes_i, self.batch_size_per_image, self.positive_fraction, 0)
+            pos_idx, neg_idx = subsample_labels(gt_classes_i, self.batch_size_per_image, self.positive_fraction, 0)
             gt_classes_i.fill_(-1)
             gt_classes_i.scatter_(0, pos_idx, 1)
             gt_classes_i.scatter_(0, neg_idx, 0)
@@ -145,29 +146,6 @@ class RPN(DefaultMetaArch):
             gt_anchors_deltas.append(gt_anchors_reg_deltas_i)
 
         return torch.stack(gt_classes), torch.stack(gt_anchors_deltas)
-    
-    def subsample_labels(self, labels: torch.Tensor, num_samples: int, positive_fraction: float, bg_label: int):
-        pos = ((labels != -1) & (labels != bg_label))
-        if pos.dim()==0 : pos = pos.unsqueeze(0).nonzero().unbind(1)[0]
-        else : pos = pos.nonzero().unbind(1)[0]
-
-        neg = (labels == bg_label)
-        if neg.dim()==0 : neg = neg.unsqueeze(0).nonzero().unbind(1)[0]
-        else : neg = neg.nonzero().unbind(1)[0]
-
-        num_pos = int(num_samples * positive_fraction)
-        num_pos = min(pos.numel(), num_pos)
-
-        num_neg = num_samples - num_pos
-        num_neg = min(neg.numel(), num_neg)
-
-        perm1 = torch.randperm(pos.numel(), device=pos.device)[:num_pos]
-        perm2 = torch.randperm(neg.numel(), device=neg.device)[:num_neg]
-
-        pos_idx = pos[perm1]
-        neg_idx = neg[perm2]
-
-        return pos_idx, neg_idx
 
     # TODO: use torch.no_grad when torchscript supports it.
     # https://github.com/pytorch/pytorch/pull/41371

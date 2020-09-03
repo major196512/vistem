@@ -4,6 +4,7 @@ META_ARCH_REGISTRY = Registry("META_ARCH")
 from .default import DefaultMetaArch
 from .retinanet import RetinaNet
 from .rpn import ProposalNetwork
+from .faster_rcnn import FasterRCNN
 
 def build_model(cfg):
     model = cfg.MODEL.META_ARCHITECTURE

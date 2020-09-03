@@ -1,6 +1,8 @@
 MODEL :
-  META_ARCHITECTURE : 'ProposalNetwork'
+  META_ARCHITECTURE : 'FasterRCNN'
   PROPOSAL_GENERATOR : 'RPN'
+  ROI_HEAD_MODULE : 'StandardROIHeads'
+
   WEIGHTS : './pretrained_weights/R-50.pkl'
   ANCHOR_GENERATOR:
     NAME : 'DefaultAnchorGenerator'
@@ -20,6 +22,10 @@ MODEL :
     PRE_NMS_TOPK_TEST: 1000  # Per FPN level
     POST_NMS_TOPK_TRAIN: 1000
     POST_NMS_TOPK_TEST: 1000
+  ROI_HEAD:
+    IN_FEATURES : ["p2", "p3", "p4", "p5"]
+    IOU_THRESHOLDS : [0.5]
+    IOU_LABELS : [0, 1]
 
 SOLVER :
   OPTIMIZER : 'SGD'

@@ -1,4 +1,4 @@
-BASE_CFG : './configs/Base-RPN.yaml'
+BASE_CFG : './configs/FasterRCNN/Base-FasterRCNN.yaml'
 
 LOADER :
   TRAIN_DATASET : ('voc_2007_trainval', 'voc_2012_trainval')
@@ -21,6 +21,6 @@ TEST :
   DETECTIONS_PER_IMAGE : 100
   EVAL_PERIOD : 3000
 
-# MODEL :
-#   RETINANET :
-#     NUM_CLASSES : 20
+MODEL :
+  ROI_HEAD :
+    NUM_CLASSES : 20
