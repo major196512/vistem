@@ -8,13 +8,14 @@ from typing import List, Dict, Tuple, Union, Optional
 from . import ROI_REGISTRY
 from .pooling import ROIPooler
 
-from vistem.modeling import Matcher, subsample_labels
+from vistem.modeling import Box2BoxTransform, Matcher, subsample_labels
 from vistem.modeling.model_utils import pairwise_iou
 from vistem.modeling.layers import Conv2d, Linear
 from vistem.modeling.layers.norm import get_norm
 from vistem.modeling.meta_arch.proposal.proposal_utils import add_ground_truth_to_proposals
 
 from vistem.structures import ImageList, Instances, ShapeSpec, Boxes
+from vistem.utils.losses import smooth_l1_loss
 from vistem.utils import get_event_storage
 from vistem.utils import weight_init
 
@@ -51,9 +52,25 @@ class StandardROIHeads(nn.Module):
         self.box_head = BoxHead(
             cfg, ShapeSpec(channels=in_channels[0], height=pooler_resolution, width=pooler_resolution)
         )
-        self.box_predictor = FastRCNNOutputLayers(cfg, self.box_head.output_shape)
+        # self.box_predictor = FastRCNNOutputLayers(cfg, self.box_head.output_shape)
         
         self.train_on_pred_boxes = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
+
+
+        self.box2box_transform = Box2BoxTransform(weights=cfg.MODEL.ROI_HEAD.BBOX_REG_WEIGHTS)
+
+        input_shape = self.box_head.output_shape
+        if isinstance(input_shape, int):  # some backward compatibility
+            input_shape = ShapeSpec(channels=input_shape)
+        input_size = input_shape.channels * (input_shape.width or 1) * (input_shape.height or 1)
+        self.cls_score = Linear(input_size, self.num_classes + 1)
+        num_bbox_reg_classes = 1 if cfg.MODEL.ROI_HEAD.CLS_AGNOSTIC_BBOX_REG else self.num_classes
+        box_dim = len(self.box2box_transform.weights)
+        self.bbox_pred = Linear(input_size, num_bbox_reg_classes * box_dim)
+
+        loss_weight = cfg.MODEL.ROI_HEAD.BBOX_REG_LOSS_WEIGHT
+        self.loss_weight = {"loss_cls": loss_weight, "loss_box_reg": loss_weight}
+        self.smooth_l1_beta = cfg.MODEL.ROI_HEAD.BBOX_SMOOTH_L1_BETA
 
     def forward(
         self,
@@ -67,30 +84,90 @@ class StandardROIHeads(nn.Module):
         if self.training:
             assert targets
             proposals = self.get_ground_truth(proposals, targets)
-        del targets
-
+            del targets
+        
         features = [features[f] for f in self.in_features]
         box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
         box_features = self.box_head(box_features)
-        predictions = self.box_predictor(box_features)
+        
+        # predictions = self.box_predictor(box_features)
+        if box_features.dim() > 2:
+            box_features = torch.flatten(box_features, start_dim=1)
+        scores = self.cls_score(box_features)
+        proposal_deltas = self.bbox_pred(box_features)
         del box_features
 
         if self.training:
-            losses = self.box_predictor.losses(predictions, proposals)
+            losses = self.losses(scores, proposal_deltas, proposals)
+
             # proposals is modified in-place below, so losses must be computed first.
             if self.train_on_pred_boxes:
                 with torch.no_grad():
-                    pred_boxes = self.box_predictor.predict_boxes_for_gt_classes(
-                        predictions, proposals
-                    )
+                    pred_boxes = self.predict_boxes_for_gt_classes(scores, proposal_deltas, proposals)
                     for proposals_per_image, pred_boxes_per_image in zip(proposals, pred_boxes):
                         proposals_per_image.proposal_boxes = Boxes(pred_boxes_per_image)
+
             return proposals, losses
 
         else:
-            pred_instances, _ = self.box_predictor.inference(predictions, proposals)
+            pred_instances, _ = self.inference(scores, proposal_deltas, proposals)
             pred_instances = self.forward_with_given_boxes(features, pred_instances)
             return pred_instances, {}
+
+    def losses(
+        self, 
+        pred_scores : torch.Tensor, 
+        pred_deltas : torch.Tensor, 
+        proposals : List[Instances]
+    ) -> Dict[torch.Tensor, torch.Tensor]:
+
+        gt_boxes = Boxes.cat([p.gt_boxes for p in proposals])
+        gt_classes = torch.cat([p.gt_classes for p in proposals], dim=0)
+        proposal_boxes = Boxes.cat([p.proposal_boxes for p in proposals])
+        num_instances = gt_classes.numel()
+
+        valid_idxs = gt_classes >= 0
+        foreground_idxs = torch.nonzero((gt_classes >= 0) & (gt_classes != self.num_classes), as_tuple=True)[0]
+
+        pred_classes = pred_scores.argmax(dim=1)
+        fg_gt_classes = gt_classes[foreground_idxs]
+        fg_pred_classes = pred_classes[foreground_idxs]
+
+        num_foreground = foreground_idxs.sum()
+        num_false_negative = (fg_pred_classes == self.num_classes).nonzero().numel()
+        num_accurate = (pred_classes == gt_classes).nonzero().numel()
+        fg_num_accurate = (fg_pred_classes == fg_gt_classes).nonzero().numel()
+
+        storage = get_event_storage()
+        if num_instances > 0:
+            storage.put_scalar("fast_rcnn/cls_accuracy", num_accurate / num_instances)
+            if num_foreground > 0:
+                storage.put_scalar("fast_rcnn/fg_cls_accuracy", fg_num_accurate / num_foreground)
+                storage.put_scalar("fast_rcnn/false_negative", num_false_negative / num_foreground)
+
+        if len(proposals) == 0:
+            loss_cls = 0.0 * pred_scores.sum()
+            loss_reg = 0.0 * pred_deltas.sum()
+        else:
+            loss_cls = F.cross_entropy(pred_scores, gt_classes, reduction="mean")
+            gt_proposal_deltas = self.box2box_transform.get_deltas(proposal_boxes.tensor, gt_boxes.tensor)
+
+            box_dim = gt_boxes.tensor.size(1)
+            fg_gt_classes = gt_classes[foreground_idxs]
+            gt_class_cols = box_dim * fg_gt_classes[:, None] + torch.arange(box_dim, device=pred_deltas.device)
+            
+            print(pred_deltas[foreground_idxs[:, None], gt_class_cols])
+            print(gt_proposal_deltas[foreground_idxs])
+            loss_reg = smooth_l1_loss(
+                pred_deltas[foreground_idxs[:, None], gt_class_cols],
+                gt_proposal_deltas[foreground_idxs],
+                self.smooth_l1_beta,
+                reduction="sum",
+            )
+
+        loss_cls *= self.loss_weight.get('loss_cls', 1.0)
+        loss_reg *= self.loss_weight.get('loss_reg', 1.0)
+        return {"loss_cls": loss_cls, "loss_reg": loss_reg}
 
     @torch.no_grad()
     def get_ground_truth(

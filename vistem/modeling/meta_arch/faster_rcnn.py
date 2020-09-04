@@ -36,16 +36,16 @@ class FasterRCNN(DefaultMetaArch):
                 losses.update(proposal_losses)
 
             _, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
-            if self.vis_period > 0:
-                storage = get_event_storage()
-                if storage.iter % self.vis_period == 0:
-                    self.visualize_training(batched_inputs, proposals)
+            # if self.vis_period > 0:
+            #     storage = get_event_storage()
+            #     if storage.iter % self.vis_period == 0:
+            #         self.visualize_training(batched_inputs, proposals)
 
             losses.update(detector_losses)
             return losses
 
         else:
-            results = self.inference()
+            self.inference()
 
     def inference(self):
-        return None
+        pass
