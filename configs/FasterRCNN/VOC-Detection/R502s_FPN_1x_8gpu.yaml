@@ -1,0 +1,9 @@
+BASE_CFG : './configs/FasterRCNN/VOC-Detection/Base-VOC.yaml'
+OUTPUT_DIR : './output_voc/faster_R502s_FPN_1x_8gpu'
+VIS_PERIOD : 10
+# SEED : 0
+
+MODEL:
+  WEIGHTS : './pretrained_weights/rpn_r50_1x.pth'
+  RESNETS :
+    DEPTH : 50
