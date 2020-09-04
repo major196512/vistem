@@ -5,7 +5,7 @@ from torch.nn import functional as F
 from vistem.structures import Instances
 
 
-def detector_postprocess(results, output_height, output_width, mask_threshold=0.5):
+def detector_postprocess(results : Instances, output_height, output_width, mask_threshold=0.5):
     if isinstance(output_width, torch.Tensor):
         output_width_tmp = output_width.float()
     else:
@@ -26,6 +26,8 @@ def detector_postprocess(results, output_height, output_width, mask_threshold=0.
         output_boxes = results.pred_boxes
     elif results.has("proposal_boxes"):
         output_boxes = results.proposal_boxes
+    else:
+        ValueError('There has no property of boxes in Instances')
 
     output_boxes.scale(scale_x, scale_y)
     output_boxes.clip(results.image_size)

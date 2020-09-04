@@ -9,90 +9,62 @@ from vistem.structures import BoxMode
 from vistem import dist
 from vistem.utils.table import create_small_table
 
-class VOCInstanceEvaluator:
+class VOCProposalEvaluator:
     def __init__(self, cfg):
         self.VISTEM_BOX_MODE = BoxMode.XYXY_ABS
         self.VOC_BOX_MODE = BoxMode.XYXY_ABS
 
-    def _process_instances(self, input, output):
+    def _process_proposals(self, input, output):
         image_id = input["image_id"]
-        instances = output["instances"].to(self._cpu_device)
+        instances = output["proposals"].to(self._cpu_device)
 
-        scores = instances.pred_scores.tolist()
-        classes = instances.pred_classes.tolist()
+        scores = instances.proposal_scores.tolist()
 
-        has_box = instances.has('pred_boxes')
-        has_mask = instances.has("pred_masks")
-        has_keypoint = instances.has("pred_keypoints")
-        
-        if has_box:
-            boxes = instances.pred_boxes.tensor.numpy()
-            boxes = BoxMode.convert(boxes, self.VISTEM_BOX_MODE, self.VOC_BOX_MODE)
-            boxes = boxes.tolist()
+        boxes = instances.proposal_boxes.tensor.numpy()
+        boxes = BoxMode.convert(boxes, self.VISTEM_BOX_MODE, self.VOC_BOX_MODE)
+        boxes = boxes.tolist()
 
         num_instances = len(scores)
         for idx in range(num_instances):
             result = {
                 'image_id' : image_id,
-                'score' : scores[idx]
+                'score' : scores[idx], 
             }
-
-            if has_box : result['pred_box'] = boxes[idx]
+            xmin, ymin, xmax, ymax = boxes[idx]
+            result['box'] = [xmin+1, ymin+1, xmax, ymax]
             
-            self._pred_instances[classes[idx]].append(result)
+            self._pred_proposals.append(result)
 
-    def _eval_instances(self):
+    def _eval_proposals(self):
         if self._distributed:
             dist.synchronize()
-            all_predictions = dist.gather(self._pred_instances, dst=0)
+            all_predictions = dist.gather(self._pred_proposals, dst=0)
             if not dist.is_main_process() : return {}
 
-            predictions = defaultdict(list)
+            predictions = list()
             for predictions_per_rank in all_predictions:
-                for clsid, lines in predictions_per_rank.items():
-                    predictions[clsid].extend(lines)
+                predictions.extend(predictions_per_rank)
             del all_predictions
 
         else:
-            predictions = self._pred_instances
+            predictions = self._pred_proposals
 
         results = OrderedDict()
+        mAP = defaultdict(list)  # iou -> ap
 
-        with tempfile.TemporaryDirectory(prefix="pascal_voc_eval_") as dirname:
-            res_file_template = os.path.join(dirname, "{}.txt")
-
-            aps = defaultdict(list)  # iou -> ap per class
-            for cls_id, cls_name in enumerate(self._category):
-                pred_cls = predictions.get(cls_id, None)
-                if pred_cls is None : continue
-
-                with open(res_file_template.format(cls_name), "w") as f:
-                    for pred in pred_cls:
-                        line = f"{pred['image_id']} {pred['score']:.3f}"
-                        if 'pred_box' in pred :
-                            xmin, ymin, xmax, ymax = pred['pred_box']
-                            # The inverse of data loading logic in `loader/data/pascal_voc/load_data.py`
-                            xmin += 1
-                            ymin += 1
-                            line = f"{line} {xmin:.1f} {ymin:.1f} {xmax:.1f} {ymax:.1f}"
-
-                        f.write(f'{line}\n')
-
-                for thresh in range(50, 100, 5):
-                    rec, prec, ap = voc_eval(
-                        res_file_template,
-                        self._anno_file_template,
-                        self._image_set_path,
-                        cls_name,
-                        ovthresh=thresh / 100.0,
-                        use_07_metric=self._is_2007,
-                    )
-                    aps[thresh].append(ap * 100)
+        for thresh in range(50, 100, 5):
+            rec, prec, ap = voc_eval(
+                predictions,
+                self._anno_file_template,
+                self._image_set_path,
+                ovthresh=thresh / 100.0,
+                use_07_metric=self._is_2007,
+            )
+            mAP[thresh].append(ap * 100)
         
-        mAP = {iou: np.mean(x) for iou, x in aps.items()}
-        results["bbox"] = {"AP": np.mean(list(mAP.values())), "AP50": mAP[50], "AP75": mAP[75]}
+        results["proposal"] = {"AP": np.mean(list(mAP.values())), "AP50": mAP[50], "AP75": mAP[75]}
         
-        table = create_small_table(results['bbox'])
+        table = create_small_table(results['proposal'])
         self._logger.info(f"\n{table}")
 
         return results
@@ -167,7 +139,7 @@ def voc_ap(rec, prec, use_07_metric=False):
     return ap
 
 
-def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_metric=False):
+def voc_eval(predictions, annopath, imagesetfile, ovthresh=0.5, use_07_metric=False):
     """rec, prec, ap = voc_eval(detpath,
                                 annopath,
                                 imagesetfile,
@@ -204,7 +176,7 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
     class_recs = {}
     npos = 0
     for imagename in imagenames:
-        R = [obj for obj in recs[imagename] if obj["name"] == classname]
+        R = [obj for obj in recs[imagename]]
         bbox = np.array([x["bbox"] for x in R])
         difficult = np.array([x["difficult"] for x in R]).astype(np.bool)
         # difficult = np.array([False for x in R]).astype(np.bool)  # treat all "difficult" as GT
@@ -212,15 +184,9 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
         npos = npos + sum(~difficult)
         class_recs[imagename] = {"bbox": bbox, "difficult": difficult, "det": det}
 
-    # read dets
-    detfile = detpath.format(classname)
-    with open(detfile, "r") as f:
-        lines = f.readlines()
-
-    splitlines = [x.strip().split(" ") for x in lines]
-    image_ids = [x[0] for x in splitlines]
-    confidence = np.array([float(x[1]) for x in splitlines])
-    BB = np.array([[float(z) for z in x[2:]] for x in splitlines]).reshape(-1, 4)
+    image_ids = [x['image_id'] for x in predictions]
+    confidence = np.array([float(x['score']) for x in predictions])
+    BB = np.array([[float(z) for z in x['box']] for x in predictions]).reshape(-1, 4)
 
     # sort by confidence
     sorted_ind = np.argsort(-confidence)

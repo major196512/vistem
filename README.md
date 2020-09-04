@@ -27,13 +27,13 @@ We train models with 8-gpu and 16 images per batch.
 When training using Gradient Accumulation, you must assign a accumulate variable in config file.
 
 ## Pascal VOC
-| Meta Architecture | Accumulate| BBox AP   | Config File   |
-| :---:             | :---:     | :---:     | :---:         |
-| RetinaNet         | 1         | 56.282    | [R50_FPN_1x_8gpu](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml) |
-| RetinaNet         | 4         | 51.011    | [R50_FPN_1x_2gpu_4acc](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_2gpu_4acc.yaml) |
-| Faster RCNN       | In Progress|          | |
-| CornerNet         | In Progress|          | |
-| RepPoints         | In Progress|          | |
+| Meta Architecture | Accumulate| BBox AP   | BBox AP50 | BBox AP75 | Config File   |
+| :---:             | :---:     | :---:     | :---:     | :---:     | :---:         |
+| RetinaNet         | 1         | 55.533    | 81.730    | 60.504    | [R50_FPN_1x_8gpu](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml) |
+| RetinaNet         | 4         | 51.011    | -         | -         | [R50_FPN_1x_2gpu_4acc](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_2gpu_4acc.yaml) |
+| Faster RCNN       | In Progress|          | | | |
+| CornerNet         | In Progress|          | | | |
+| RepPoints         | In Progress|          | | | |
 
 
 

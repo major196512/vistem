@@ -1,0 +1,39 @@
+MODEL :
+  META_ARCHITECTURE : 'FasterRCNN'
+  PROPOSAL_GENERATOR : 'RPN'
+  ROI_HEAD_MODULE : 'StandardROIHeads'
+
+  WEIGHTS : './pretrained_weights/R-50.pkl'
+  ANCHOR_GENERATOR:
+    NAME : 'DefaultAnchorGenerator'
+    SIZES: [[32], [64], [128], [256], [512]]  # One size for each in feature map
+    ASPECT_RATIOS : [[0.5, 1.0, 2.0]]
+  BACKBONE :
+    NAME : 'ResNetFPN'
+  RESNETS : 
+    DEPTH : 50
+    OUT_FEATURES : ['res2', 'res3', 'res4', 'res5']
+    NORM : 'FrozenBN'
+  FPN :
+    IN_FEATURES : ['res2', 'res3', 'res4', 'res5']
+  RPN :
+    IN_FEATURES : ["p2", "p3", "p4", "p5", "p6"]
+    PRE_NMS_TOPK_TRAIN: 2000  # Per FPN level
+    PRE_NMS_TOPK_TEST: 1000  # Per FPN level
+    POST_NMS_TOPK_TRAIN: 1000
+    POST_NMS_TOPK_TEST: 1000
+  ROI_HEAD:
+    IN_FEATURES : ["p2", "p3", "p4", "p5"]
+    IOU_THRESHOLDS : [0.5]
+    IOU_LABELS : [0, 1]
+    BOX_POOLER_RESOLUTION : 7
+    BOX_HEAD_NUM_FC : 2
+
+# NAME: "FastRCNNConvFCHead"
+# NUM_FC: 2
+
+SOLVER :
+  OPTIMIZER : 'SGD'
+  ACCUMULATE : 1
+  IMG_PER_BATCH : 16
+  BASE_LR : 0.02

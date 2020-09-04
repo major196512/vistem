@@ -19,6 +19,8 @@ class TensorboardXWriter(HookBase):
         for k, (v, iteration) in storage.latest_with_smoothing(self._period).items():
             if iteration > self._last_write:
                 new_last_write = max(new_last_write, iteration)
+                if 'loss' in k : k = f'Loss/{k}'
+                elif ('time' in k) or ('second' in k) : k = f'Time/{k}'
                 self._writer.add_scalar(k, v, iteration)
         self._last_write = new_last_write
 

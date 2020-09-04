@@ -4,16 +4,16 @@
 import torch
 import os
 import copy
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 from vistem.utils import setup_logger
-from vistem import dist
 
 from vistem.loader import MetadataCatalog
 from vistem.evaluation.default import Evaluator
 from .instances import VOCInstanceEvaluator
+from .proposals import VOCProposalEvaluator
 
-class VOCEvaluator(Evaluator, VOCInstanceEvaluator):
+class VOCEvaluator(Evaluator, VOCInstanceEvaluator, VOCProposalEvaluator):
     """
     Evaluate Pascal VOC style AP for Pascal VOC dataset.
     It contains a synchronization, therefore has to be called from all ranks.
@@ -44,29 +44,16 @@ class VOCEvaluator(Evaluator, VOCInstanceEvaluator):
         super().__init__(cfg)
 
     def reset(self):
-        self._predictions = defaultdict(list)
+        self._pred_instances = defaultdict(list)
+        self._pred_proposals = list()
 
     def process(self, inputs, outputs):
         for input, output in zip(inputs, outputs):
-            if 'instances' in output : 
-                self._instances_to_voc(input, output)
+            if 'proposals' in output : self._process_proposals(input, output)
+            if 'instances' in output : self._process_instances(input, output)
             
 
     def evaluate(self):
-        if self._distributed:
-            dist.synchronize()
-            all_predictions = dist.gather(self._predictions, dst=0)
-            if not dist.is_main_process() : return {}
-
-            predictions = defaultdict(list)
-            for predictions_per_rank in all_predictions:
-                for clsid, lines in predictions_per_rank.items():
-                    predictions[clsid].extend(lines)
-            del all_predictions
-
-        else:
-            predictions = self._predictions
-
         self._logger.info(
             "Evaluating {} using {} metric. "
             "Note that results do not use the official Matlab API.".format(
@@ -74,5 +61,7 @@ class VOCEvaluator(Evaluator, VOCInstanceEvaluator):
             )
         )
 
-        self._results = self._eval_instances(predictions)
+        self._results = OrderedDict()
+        if len(self._pred_instances) > 0 : self._results.update(self._eval_instances())
+        if len(self._pred_proposals) > 0 : self._results.update(self._eval_proposals())
         return copy.deepcopy(self._results)

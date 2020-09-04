@@ -27,7 +27,7 @@ class COCOInstanceEvaluator:
         if num_instance == 0 : return []
 
         results = []
-        scores = instances.scores.tolist()
+        scores = instances.pred_scores.tolist()
         classes = instances.pred_classes.tolist()
         for k in range(num_instance):
             result = {

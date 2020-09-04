@@ -1,9 +1,11 @@
 .vscode
 
 __pycache__/
+
 /data
-/pretrained
-/vistem.egg-info
-/bak_vistem
 /pretrained_weights
 /output*
+
+/build
+/vistem.egg-info
+/vistem/ext.cpython-36m-x86_64-linux-gnu.so

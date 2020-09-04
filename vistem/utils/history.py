@@ -36,3 +36,6 @@ class HistoryBuffer:
 
     def values(self) -> List[Tuple[float, float]]:
         return self._data
+
+    def iter(self):
+        return self._data[-1][1]

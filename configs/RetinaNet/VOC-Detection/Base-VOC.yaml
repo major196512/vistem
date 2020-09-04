@@ -1,4 +1,4 @@
-BASE_CFG : './configs/Base-RetinaNet.yaml'
+BASE_CFG : './configs/RetinaNet/Base-RetinaNet.yaml'
 
 LOADER :
   TRAIN_DATASET : ('voc_2007_trainval', 'voc_2012_trainval')
@@ -10,10 +10,6 @@ INPUT:
   MIN_SIZE_TRAIN: (480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800)
   MIN_SIZE_TEST: 800
 SOLVER :
-  OPTIMIZER : 'SGD'
-  ACCUMULATE : 1
-  IMG_PER_BATCH : 16
-  BASE_LR : 0.01
   MAX_ITER : 18000 # 17.4 epoch
   WARMUP_ITERS : 100
   STEPS : (12000, 16000)
