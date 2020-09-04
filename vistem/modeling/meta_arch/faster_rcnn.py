@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from . import META_ARCH_REGISTRY, DefaultMetaArch
+from vistem.modeling import detector_postprocess
 from vistem.modeling.backbone import build_backbone
 from vistem.modeling.meta_arch.proposal import build_proposal_generator
 from vistem.modeling.meta_arch.roi_head import build_roi_head
@@ -28,24 +29,32 @@ class FasterRCNN(DefaultMetaArch):
         images, gt_instances, proposals = self.preprocess_image(batched_inputs)
 
         features = self.backbone(images.tensor)
+        if proposals is None :
+            proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
+        else:
+            # ToDo
+            pass
+
+        results, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
 
         if self.training:
             losses = {}
-            if proposals is None :
-                proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
-                losses.update(proposal_losses)
+            losses.update(proposal_losses)
+            losses.update(detector_losses)
 
-            _, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
             # if self.vis_period > 0:
             #     storage = get_event_storage()
             #     if storage.iter % self.vis_period == 0:
             #         self.visualize_training(batched_inputs, proposals)
 
-            losses.update(detector_losses)
             return losses
 
         else:
-            self.inference()
+            processed_results = []
+            for results_per_image, input_per_image, image_size in zip(results, batched_inputs, images.image_sizes):
+                height = input_per_image.get("height", image_size[0])
+                width = input_per_image.get("width", image_size[1])
+                r = detector_postprocess(results_per_image, height, width)
+                processed_results.append({"instances": r})
 
-    def inference(self):
-        pass
+            return processed_results

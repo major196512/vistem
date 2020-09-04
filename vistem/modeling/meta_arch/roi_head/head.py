@@ -10,7 +10,7 @@ from .pooling import ROIPooler
 
 from vistem.modeling import Box2BoxTransform, Matcher, subsample_labels
 from vistem.modeling.model_utils import pairwise_iou
-from vistem.modeling.layers import Conv2d, Linear
+from vistem.modeling.layers import Conv2d, Linear, batched_nms
 from vistem.modeling.layers.norm import get_norm
 from vistem.modeling.meta_arch.proposal.proposal_utils import add_ground_truth_to_proposals
 
@@ -36,7 +36,11 @@ class StandardROIHeads(nn.Module):
         self.batch_size_per_image           = cfg.MODEL.ROI_HEAD.BATCH_SIZE_PER_IMAGE
         self.positive_fraction              = cfg.MODEL.ROI_HEAD.POSITIVE_FRACTION
         
-        self.train_on_pred_boxes = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
+        self.train_on_pred_boxes            = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
+
+        self.test_score_thresh              = cfg.MODEL.ROI_HEAD.TEST_SCORE_THRESH
+        self.test_nms_thresh                = cfg.MODEL.ROI_HEAD.TEST_NMS_THRESH
+        self.max_detections_per_image       = cfg.TEST.DETECTIONS_PER_IMAGE
 
         # func
         self.proposal_matcher = Matcher(
@@ -83,7 +87,6 @@ class StandardROIHeads(nn.Module):
         targets: Optional[List[Instances]] = None,
     ) -> Tuple[List[Instances], Dict[str, torch.Tensor]]:
 
-        del images
         if self.training:
             assert targets
             proposals = self.get_ground_truth(proposals, targets)
@@ -93,7 +96,6 @@ class StandardROIHeads(nn.Module):
         box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
         box_features = self.box_head(box_features)
         
-        # predictions = self.box_predictor(box_features)
         if box_features.dim() > 2:
             box_features = torch.flatten(box_features, start_dim=1)
         scores = self.cls_score(box_features)
@@ -104,18 +106,19 @@ class StandardROIHeads(nn.Module):
             losses = self.losses(scores, proposal_deltas, proposals)
 
             # proposals is modified in-place below, so losses must be computed first.
-            if self.train_on_pred_boxes:
-                with torch.no_grad():
-                    pred_boxes = self.predict_boxes_for_gt_classes(scores, proposal_deltas, proposals)
-                    for proposals_per_image, pred_boxes_per_image in zip(proposals, pred_boxes):
-                        proposals_per_image.proposal_boxes = Boxes(pred_boxes_per_image)
+            # if self.train_on_pred_boxes:
+            #     with torch.no_grad():
+            #         pred_boxes = self.predict_boxes_for_gt_classes(scores, proposal_deltas, proposals)
+            #         for proposals_per_image, pred_boxes_per_image in zip(proposals, pred_boxes):
+            #             proposals_per_image.proposal_boxes = Boxes(pred_boxes_per_image)
 
             return proposals, losses
 
         else:
-            pred_instances, _ = self.inference(scores, proposal_deltas, proposals)
-            pred_instances = self.forward_with_given_boxes(features, pred_instances)
-            return pred_instances, {}
+            results = self.inference(scores, proposal_deltas, proposals)
+            # pred_instances = self.forward_with_given_boxes(features, pred_instances)
+
+            return results, {}
 
     def losses(
         self, 
@@ -240,6 +243,75 @@ class StandardROIHeads(nn.Module):
         storage.put_scalar("roi_head/num_bg_samples", np.mean(num_bg_samples))
 
         return proposals_with_gt
+
+    def inference(
+        self,
+        pred_scores : torch.Tensor, 
+        pred_deltas : torch.Tensor, 
+        proposals : List[Instances]
+    ) -> List[Instances]:
+
+        results = []
+        if not len(proposals) : return results
+        num_inst_per_image = [len(p) for p in proposals]
+
+        proposal_boxes = [p.proposal_boxes for p in proposals]
+        proposal_boxes = proposal_boxes[0].cat(proposal_boxes).tensor
+        pred_deltas_per_image = self.box2box_transform.apply_deltas(pred_deltas, proposal_boxes)
+        pred_deltas_per_image = pred_deltas_per_image.split(num_inst_per_image)
+
+        pred_scores_per_image = F.softmax(pred_scores, dim=-1)
+        pred_scores_per_image = pred_scores_per_image.split(num_inst_per_image)
+
+        image_sizes = [x.image_size for x in proposals]
+        for img_idx, image_size in enumerate(image_sizes):
+            results_per_image = self.inference_single_image(
+                pred_scores_per_image[img_idx], pred_deltas_per_image[img_idx], image_size
+            )
+            results.append(results_per_image)
+
+        return results
+
+    def inference_single_image(
+        self,
+        box_cls: torch.Tensor,
+        box_delta: torch.Tensor,
+        image_size: List[Tuple[int, int]]
+    ) -> Instances:
+    
+        valid_mask = torch.isfinite(box_delta).all(dim=1) & torch.isfinite(box_cls).all(dim=1)
+        if not valid_mask.all():
+            box_delta = box_delta[valid_mask]
+            box_cls = box_cls[valid_mask]
+
+        box_cls = box_cls[:, :-1]
+        keep_idxs = box_cls > self.test_score_thresh  # R x K
+        box_cls = box_cls[keep_idxs]
+
+        num_bbox_reg_classes = box_delta.shape[1] // 4
+        # Convert to Boxes to use the `clip` function ...
+        box_delta = Boxes(box_delta.reshape(-1, 4))
+        box_delta.clip(image_size)
+        box_delta = box_delta.tensor.view(-1, num_bbox_reg_classes, 4)  # R x C x 4
+
+        filter_inds = keep_idxs.nonzero()
+        proposal_idxs = filter_inds[:, 0]
+        classes_idxs = filter_inds[:, 1]
+
+        if num_bbox_reg_classes == 1:
+            box_delta = box_delta[proposal_idxs, 0]
+        else:
+            box_delta = box_delta[keep_idxs]
+        
+        keep = batched_nms(box_delta, box_cls, classes_idxs, self.test_nms_thresh)
+        if self.max_detections_per_image >= 0:
+            keep = keep[:self.max_detections_per_image]
+
+        result = Instances(image_size)
+        result.pred_boxes = Boxes(box_delta[keep])
+        result.pred_scores = box_cls[keep]
+        result.pred_classes = classes_idxs[keep]
+        return result
 
 class BoxHead(nn.Module):
     def __init__(
