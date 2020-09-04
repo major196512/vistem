@@ -4,4 +4,3 @@ OUTPUT_DIR : './output_voc/retinanet_R50_FPN_1x_2gpu_4acc'
 SOLVER :
   ACCUMULATE : 4
   IMG_PER_BATCH : 4
-  BASE_LR : 0.0025

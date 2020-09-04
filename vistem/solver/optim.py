@@ -7,7 +7,7 @@ def build_optimizer(cfg, model: torch.nn.Module) -> torch.optim.Optimizer:
         if not value.requires_grad:
             continue
 
-        lr = cfg.SOLVER.BASE_LR
+        lr = cfg.SOLVER.BASE_LR / cfg.SOLVER.ACCUMULATE
         weight_decay = cfg.SOLVER.WEIGHT_DECAY
 
         if key.endswith("norm.weight") or key.endswith("norm.bias"):
