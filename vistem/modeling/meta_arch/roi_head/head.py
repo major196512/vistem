@@ -23,6 +23,8 @@ from vistem.utils import weight_init
 class StandardROIHeads(nn.Module):
     def __init__(self, cfg, input_shape):
         super().__init__()
+
+        # fmt
         self.in_features                    = cfg.MODEL.ROI_HEAD.IN_FEATURES
         self.num_classes                    = cfg.MODEL.ROI_HEAD.NUM_CLASSES
         in_channels                         = [input_shape[f].channels for f in self.in_features]
@@ -33,15 +35,19 @@ class StandardROIHeads(nn.Module):
         self.proposal_append_gt             = cfg.MODEL.ROI_HEAD.PROPOSAL_APPEND_GT
         self.batch_size_per_image           = cfg.MODEL.ROI_HEAD.BATCH_SIZE_PER_IMAGE
         self.positive_fraction              = cfg.MODEL.ROI_HEAD.POSITIVE_FRACTION
+        
+        self.train_on_pred_boxes = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
 
-        pooler_resolution = cfg.MODEL.ROI_HEAD.BOX_POOLER_RESOLUTION
-
+        # func
         self.proposal_matcher = Matcher(
                 cfg.MODEL.ROI_HEAD.IOU_THRESHOLDS,
                 cfg.MODEL.ROI_HEAD.IOU_LABELS,
                 allow_low_quality_matches=False,
             )
+        self.box2box_transform = Box2BoxTransform(weights=cfg.MODEL.ROI_HEAD.BBOX_REG_WEIGHTS)
 
+        # Pooling
+        pooler_resolution = cfg.MODEL.ROI_HEAD.BOX_POOLER_RESOLUTION
         self.box_pooler = ROIPooler(
             output_size=pooler_resolution,
             scales=tuple(1.0 / input_shape[k].stride for k in self.in_features),
@@ -49,16 +55,12 @@ class StandardROIHeads(nn.Module):
             pooler_type=cfg.MODEL.ROI_HEAD.BOX_POOLER_TYPE,
         )
 
+        # Head Module
         self.box_head = BoxHead(
             cfg, ShapeSpec(channels=in_channels[0], height=pooler_resolution, width=pooler_resolution)
         )
-        # self.box_predictor = FastRCNNOutputLayers(cfg, self.box_head.output_shape)
-        
-        self.train_on_pred_boxes = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
 
-
-        self.box2box_transform = Box2BoxTransform(weights=cfg.MODEL.ROI_HEAD.BBOX_REG_WEIGHTS)
-
+        # Classification and Localization
         input_shape = self.box_head.output_shape
         if isinstance(input_shape, int):  # some backward compatibility
             input_shape = ShapeSpec(channels=input_shape)
@@ -68,8 +70,9 @@ class StandardROIHeads(nn.Module):
         box_dim = len(self.box2box_transform.weights)
         self.bbox_pred = Linear(input_size, num_bbox_reg_classes * box_dim)
 
+        # Loss variables
         loss_weight = cfg.MODEL.ROI_HEAD.BBOX_REG_LOSS_WEIGHT
-        self.loss_weight = {"loss_cls": loss_weight, "loss_box_reg": loss_weight}
+        self.loss_weight = {"loss_cls": loss_weight, "loss_loc": loss_weight}
         self.smooth_l1_beta = cfg.MODEL.ROI_HEAD.BBOX_SMOOTH_L1_BETA
 
     def forward(
@@ -133,21 +136,21 @@ class StandardROIHeads(nn.Module):
         fg_gt_classes = gt_classes[foreground_idxs]
         fg_pred_classes = pred_classes[foreground_idxs]
 
-        num_foreground = foreground_idxs.sum()
+        num_foreground = foreground_idxs.numel()
         num_false_negative = (fg_pred_classes == self.num_classes).nonzero().numel()
         num_accurate = (pred_classes == gt_classes).nonzero().numel()
         fg_num_accurate = (fg_pred_classes == fg_gt_classes).nonzero().numel()
 
         storage = get_event_storage()
         if num_instances > 0:
-            storage.put_scalar("fast_rcnn/cls_accuracy", num_accurate / num_instances)
+            storage.put_scalar("roi_head/cls_accuracy", num_accurate / num_instances)
             if num_foreground > 0:
-                storage.put_scalar("fast_rcnn/fg_cls_accuracy", fg_num_accurate / num_foreground)
-                storage.put_scalar("fast_rcnn/false_negative", num_false_negative / num_foreground)
+                storage.put_scalar("roi_head/fg_cls_accuracy", fg_num_accurate / num_foreground)
+                storage.put_scalar("roi_head/false_negative", num_false_negative / num_foreground)
 
         if len(proposals) == 0:
             loss_cls = 0.0 * pred_scores.sum()
-            loss_reg = 0.0 * pred_deltas.sum()
+            loss_loc = 0.0 * pred_deltas.sum()
         else:
             loss_cls = F.cross_entropy(pred_scores, gt_classes, reduction="mean")
             gt_proposal_deltas = self.box2box_transform.get_deltas(proposal_boxes.tensor, gt_boxes.tensor)
@@ -156,7 +159,7 @@ class StandardROIHeads(nn.Module):
             fg_gt_classes = gt_classes[foreground_idxs]
             gt_class_cols = box_dim * fg_gt_classes[:, None] + torch.arange(box_dim, device=pred_deltas.device)
             
-            loss_reg = smooth_l1_loss(
+            loss_loc = smooth_l1_loss(
                 pred_deltas[foreground_idxs[:, None], gt_class_cols],
                 gt_proposal_deltas[foreground_idxs],
                 self.smooth_l1_beta,
@@ -164,8 +167,8 @@ class StandardROIHeads(nn.Module):
             ) / gt_classes.numel()
 
         loss_cls *= self.loss_weight.get('loss_cls', 1.0)
-        loss_reg *= self.loss_weight.get('loss_reg', 1.0)
-        return {"loss_cls": loss_cls, "loss_reg": loss_reg}
+        loss_loc *= self.loss_weight.get('loss_loc', 1.0)
+        return {"loss_cls": loss_cls, "loss_loc": loss_loc}
 
     @torch.no_grad()
     def get_ground_truth(
