@@ -32,8 +32,7 @@ class FasterRCNN(DefaultMetaArch):
         if proposals is None :
             proposals, proposal_losses = self.proposal_generator(images, features, gt_instances)
         else:
-            # ToDo
-            pass
+            proposal_losses = {}
 
         results, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
 
@@ -42,10 +41,10 @@ class FasterRCNN(DefaultMetaArch):
             losses.update(proposal_losses)
             losses.update(detector_losses)
 
-            # if self.vis_period > 0:
-            #     storage = get_event_storage()
-            #     if storage.iter % self.vis_period == 0:
-            #         self.visualize_training(batched_inputs, proposals)
+            if self.vis_period > 0:
+                storage = get_event_storage()
+                if storage.iter % self.vis_period == 0:
+                    self.visualize_training(batched_inputs, results)
 
             return losses
 

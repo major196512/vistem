@@ -12,6 +12,7 @@ from vistem.modeling import Box2BoxTransform, Matcher, subsample_labels
 from vistem.modeling.model_utils import pairwise_iou
 from vistem.modeling.layers import Conv2d, Linear, batched_nms
 from vistem.modeling.layers.norm import get_norm
+from vistem.modeling.meta_arch import DefaultMetaArch
 from vistem.modeling.meta_arch.proposal.proposal_utils import add_ground_truth_to_proposals
 
 from vistem.structures import ImageList, Instances, ShapeSpec, Boxes
@@ -20,9 +21,9 @@ from vistem.utils import get_event_storage
 from vistem.utils import weight_init
 
 @ROI_REGISTRY.register()
-class StandardROIHeads(nn.Module):
+class StandardROIHeads(DefaultMetaArch):
     def __init__(self, cfg, input_shape):
-        super().__init__()
+        super().__init__(cfg)
 
         # fmt
         self.in_features                    = cfg.MODEL.ROI_HEAD.IN_FEATURES
@@ -111,8 +112,12 @@ class StandardROIHeads(nn.Module):
             #         pred_boxes = self.predict_boxes_for_gt_classes(scores, proposal_deltas, proposals)
             #         for proposals_per_image, pred_boxes_per_image in zip(proposals, pred_boxes):
             #             proposals_per_image.proposal_boxes = Boxes(pred_boxes_per_image)
+            # return proposals, losses
 
-            return proposals, losses
+            if self.vis_period > 0:
+                results = self.inference(scores, proposal_deltas, proposals)
+                return results, losses
+            else : return None, losses
 
         else:
             results = self.inference(scores, proposal_deltas, proposals)
