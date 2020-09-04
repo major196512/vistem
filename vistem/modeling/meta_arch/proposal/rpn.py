@@ -77,13 +77,18 @@ class RPN(DefaultMetaArch):
 
         valid_idxs = gt_classes >= 0
         foreground_idxs = gt_classes == 1
-        num_valid = valid_idxs.sum().item()
-        num_fg = foreground_idxs.sum().item()
 
         # storage
+        num_valid = valid_idxs.sum().item()
+        num_foreground = foreground_idxs.sum().item()
+        num_pred_fg = (pred_class_logits[valid_idxs] > 0).sum().item()
+        
         storage = get_event_storage()
-        storage.put_scalar("rpn/num_pos_anchors", num_fg / num_images)
-        storage.put_scalar("rpn/num_neg_anchors", (num_valid - num_fg) / num_images)
+        storage.put_scalar("rpn/num_pos_anchors", num_foreground / num_images)
+        storage.put_scalar("rpn/num_neg_anchors", (num_valid - num_foreground) / num_images)
+        if num_foreground > 0 : storage.put_scalar("rpn/recall", (pred_class_logits[foreground_idxs] > 0).nonzero().numel() / num_foreground)
+        if num_pred_fg > 0 : storage.put_scalar("rpn/precision", (pred_class_logits[foreground_idxs] > 0).nonzero().numel() / num_pred_fg)
+            
 
         # logits loss
         loss_cls = F.binary_cross_entropy_with_logits(
