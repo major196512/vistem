@@ -156,14 +156,12 @@ class StandardROIHeads(nn.Module):
             fg_gt_classes = gt_classes[foreground_idxs]
             gt_class_cols = box_dim * fg_gt_classes[:, None] + torch.arange(box_dim, device=pred_deltas.device)
             
-            print(pred_deltas[foreground_idxs[:, None], gt_class_cols])
-            print(gt_proposal_deltas[foreground_idxs])
             loss_reg = smooth_l1_loss(
                 pred_deltas[foreground_idxs[:, None], gt_class_cols],
                 gt_proposal_deltas[foreground_idxs],
                 self.smooth_l1_beta,
                 reduction="sum",
-            )
+            ) / gt_classes.numel()
 
         loss_cls *= self.loss_weight.get('loss_cls', 1.0)
         loss_reg *= self.loss_weight.get('loss_reg', 1.0)
