@@ -10,12 +10,12 @@ _PREDEFINED_SPLITS = {
     "coco_2014_train": ("coco2014/images/train2014", "coco2014/annotations/instances_train2014.json", True),
     "coco_2014_val": ("coco2014/images/val2014", "coco2014/annotations/instances_val2014.json", False),
     "coco_2014_minival": ("coco2014/images/val2014", "coco2014/annotations/instances_minival2014.json", False),
-    "coco_2014_minival_100": ("coco2014/images/val2014", "coco2014/annotations/instances_minival2014_100.json", False),
-    "coco_2014_valminusminival": (
-        "coco2014/images/val2014",
-        "coco2014/annotations/instances_valminusminival2014.json",
-        False
-    ),
+    # "coco_2014_minival_100": ("coco2014/images/val2014", "coco2014/annotations/instances_minival2014_100.json", False),
+    # "coco_2014_valminusminival": (
+    #     "coco2014/images/val2014",
+    #     "coco2014/annotations/instances_valminusminival2014.json",
+    #     False
+    # ),
     "coco_2017_train": ("coco2017/images/train2017", "coco2017/annotations/instances_train2017.json", True),
     "coco_2017_val": ("coco2017/images/val2017", "coco2017/annotations/instances_val2017.json", False),
 }

@@ -1,9 +1,11 @@
 import torch
 from torch.utils.data import Dataset, IterableDataset
 
+import copy
 import numpy as np
 import random
 import pickle
+from typing import List, Dict
 
 from vistem.utils.logger import setup_logger
 from vistem.utils.serialize import PicklableWrapper
@@ -13,7 +15,13 @@ __all__ = ['ListDataset', 'DictionaryDataset', 'MapDataset', 'AspectRatioGrouped
 _logger = setup_logger(__name__)
 
 class ListDataset(Dataset):
-    def __init__(self, cfg, data, copy: bool = True, serialize: bool = True):
+    def __init__(
+        self, cfg, 
+        data: List[Dict], 
+        copy: bool = True, 
+        serialize: bool = True
+    ):
+
         self._data = data
         self._copy = copy
         self._serialize = serialize
@@ -48,7 +56,7 @@ class ListDataset(Dataset):
             return self._data[idx]
 
 class DictionaryDataset(Dataset):
-    def __init__(self, cfg, data):
+    def __init__(self, cfg, data: List[Dict]):
         self._data = data
         self._key = list(data.keys())
 

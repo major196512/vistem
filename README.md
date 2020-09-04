@@ -13,12 +13,14 @@ Although previous projects implement multiple models(Detectron2, MMDetection and
 
 ## Setup
 ```bash
-cd ..
+git clone https://github.com/major196512/vistem
 python -m pip install -e vistem
 cd vistem
 ln -s $PRETRAINED pretrained_weights
 ln -s $DATA data
 ```
+where `$PRETRAINED` is the directory of pretrained weights and `$DATA` are of and datasets.
+
 See [here](./vistem/loader/data) for more information about `$DATA`.
 
 # Performance
@@ -35,7 +37,13 @@ When training using Gradient Accumulation, you must assign a accumulate variable
 | CornerNet         | In Progress|          | | | |
 | RepPoints         | In Progress|          | | | |
 
-
+## MS-COCO
+| Meta Architecture | BBox AP   | Config File   |
+| :---:             | :---:     | :---:         |
+| RetinaNet         | 36.524    | [R50_FPN_1x_8gpu](./configs/RetinaNet/COCO-Detection/R50_FPN_1x_8gpu.yaml) |
+| Faster RCNN       | In Progress|          |
+| CornerNet         | In Progress|          |
+| RepPoints         | In Progress|          |
 
 # Training
 ## Single Machine
