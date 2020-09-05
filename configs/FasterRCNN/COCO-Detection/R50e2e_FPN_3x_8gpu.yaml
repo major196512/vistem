@@ -1,6 +1,6 @@
 BASE_CFG : './configs/FasterRCNN/COCO-Detection/R50e2e_FPN-1x_8gpu.yaml'
 OUTPUT_DIR : './outputs/faster_R50e2e_FPN_3x_8gpu'
-SEED : 0
+# SEED : 0
 
 SOLVER :
   MAX_ITER : 270000
