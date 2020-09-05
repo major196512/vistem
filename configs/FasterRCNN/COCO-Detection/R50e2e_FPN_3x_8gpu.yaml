@@ -1,5 +1,5 @@
-BASE_CFG : './configs/RetinaNet/COCO-Detection/R50_FPN-1x_8gpu.yaml'
-OUTPUT_DIR : './outputs/retinanet_R50_FPN_3x_8gpu'
+BASE_CFG : './configs/FasterRCNN/COCO-Detection/R50e2e_FPN-1x_8gpu.yaml'
+OUTPUT_DIR : './outputs/faster_R50e2e_FPN_3x_8gpu'
 SEED : 0
 
 SOLVER :
