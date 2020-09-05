@@ -24,24 +24,32 @@ where `$PRETRAINED` is the directory of pretrained weights and `$DATA` are of an
 See [here](./vistem/loader/data) for more information about `$DATA`.
 
 # Performance
-We train models with 8-gpu and 16 images per batch.
-
-When training using Gradient Accumulation, you must assign a accumulate variable in config file.
 
 ## Pascal VOC
+We train our models with 8-gpu and 16 images per batch.
+
 | Meta Architecture | Accumulate| BBox AP   | BBox AP50 | BBox AP75 | Config File   |
 | :---:             | :---:     | :---:     | :---:     | :---:     | :---:         |
 | RetinaNet         | 1         | 55.533    | 81.730    | 60.504    | [R50_FPN_1x_8gpu](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml) |
+| Faster RCNN       | 1         | 54.282    | 81.827    | 60.048    | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_8gpu.yaml) |
+| CornerNet         | 1         | In Progress|          | | |
+| RepPoints         | 1         | In Progress|          | | |
+
+When training using `Gradient Accumulation`, you must assign a accumulate variable in config file.
+
+| Meta Architecture | Accumulate| BBox AP   | BBox AP50 | BBox AP75 | Config File   |
+| :---:             | :---:     | :---:     | :---:     | :---:     | :---:         |
 | RetinaNet         | 4         | 51.011    | 79.542    | 54.105    | [R50_FPN_1x_2gpu_4acc](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_2gpu_4acc.yaml) |
-| Faster RCNN       | In Progress|          | | | |
-| CornerNet         | In Progress|          | | | |
-| RepPoints         | In Progress|          | | | |
+| Faster RCNN       | 4         | In Progress    | | | [R50e2e_FPN_1x_2gpu_4acc](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_2gpu_4acc.yaml) |
+| CornerNet         | 4         |In Progress|          | | |
+| RepPoints         | 4         | In Progress|          | | |
 
 ## MS-COCO
+In training MS-COCO datasets, We only evaluate with 8-gpu settings.
 | Meta Architecture | BBox AP   | Config File   |
 | :---:             | :---:     | :---:         |
 | RetinaNet         | 36.524    | [R50_FPN_1x_8gpu](./configs/RetinaNet/COCO-Detection/R50_FPN_1x_8gpu.yaml) |
-| Faster RCNN       | In Progress|          |
+| Faster RCNN       | xx.xxx    | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/COCO-Detection/R50e2e_FPN_1x_8gpu.yaml) |
 | CornerNet         | In Progress|          |
 | RepPoints         | In Progress|          |
 
