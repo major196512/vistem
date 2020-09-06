@@ -117,14 +117,14 @@ class RetinaNet(DefaultMetaArch):
         ) / self.loss_normalizer
 
         # regression loss
-        loss_box_reg = smooth_l1_loss(
+        loss_loc = smooth_l1_loss(
             pred_anchor_deltas[foreground_idxs],
             gt_anchors_deltas[foreground_idxs],
             beta=self.smooth_l1_loss_beta,
             reduction="sum",
         ) / self.loss_normalizer
 
-        return {"loss_cls": loss_cls, "loss_box_reg": loss_box_reg}
+        return {"loss_cls": loss_cls, "loss_loc": loss_loc}
 
     @torch.no_grad()
     def get_ground_truth(self, anchors, targets):
