@@ -55,6 +55,10 @@ In training MS-COCO datasets, We only evaluate with 8-gpu settings.
 
 # Training
 ## Single Machine
+
+When training in a single machine, you should only specify `--config-file` and `--num-gpu` in argument.
+You can select the training model and datasets by using or modifying a [config file](./config). For more information about factors in config, see [here](./vistem/config/defaults/README.md).
+
 ```bash
 python tools/train.py --config-file ./configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml --num-gpu 8
 ```
