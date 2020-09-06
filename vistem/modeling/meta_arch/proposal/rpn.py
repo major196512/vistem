@@ -20,34 +20,44 @@ from vistem.utils.event import get_event_storage
 class RPN(DefaultMetaArch):
     def __init__(self, cfg, input_shape):
         super().__init__(cfg)
+
+        # Default
         self.in_features                = cfg.MODEL.RPN.IN_FEATURES
-        self.batch_size_per_image       = cfg.MODEL.RPN.BATCH_SIZE_PER_IMAGE
-        self.positive_fraction          = cfg.MODEL.RPN.POSITIVE_FRACTION
+
+        # Matcher
+        iou_thres                       = cfg.MODEL.RPN.MATCHER.IOU_THRESHOLDS
+        iou_labels                      = cfg.MODEL.RPN.MATCHER.IOU_LABELS
+        allow_low_quality_matches       = cfg.MODEL.RPN.MATCHER.LOW_QUALITY_MATCHES
+        self.matcher                    = Matcher(iou_thres, iou_labels, allow_low_quality_matches=allow_low_quality_matches)
+
+        # Sampling
+        self.batch_size_per_image       = cfg.MODEL.RPN.SAMPLING.BATCH_SIZE_PER_IMAGE
+        self.positive_fraction          = cfg.MODEL.RPN.SAMPLING.POSITIVE_FRACTION
         
-        self.smooth_l1_loss_beta        = cfg.MODEL.RPN.SMOOTH_L1_BETA
-        self.box_reg_loss_type          = cfg.MODEL.RPN.BBOX_REG_LOSS_TYPE
+        # Loss Parameters
+        self.loc_loss_type              = cfg.MODEL.RPN.LOSS.LOC_TYPE
+        self.smooth_l1_loss_beta        = cfg.MODEL.RPN.LOSS.SMOOTH_L1_BETA
         self.loss_weight = {
-            'loss_rpn_cls' : cfg.MODEL.RPN.LOSS_WEIGHT,
-            'loss_rpn_loc' : cfg.MODEL.RPN.BBOX_REG_LOSS_WEIGHT
+            'loss_rpn_cls' : cfg.MODEL.RPN.LOSS.CLS_WEIGHT,
+            'loss_rpn_loc' : cfg.MODEL.RPN.LOSS.LOC_WEIGHT
         }
 
-        self.nms_threshold              = cfg.MODEL.RPN.NMS_THRESH
-        self.pre_nms_topk               = {True : cfg.MODEL.RPN.PRE_NMS_TOPK_TRAIN, False : cfg.MODEL.RPN.PRE_NMS_TOPK_TEST}
-        self.post_nms_topk              = {True : cfg.MODEL.RPN.POST_NMS_TOPK_TRAIN, False : cfg.MODEL.RPN.POST_NMS_TOPK_TEST}
-        self.min_box_size               = cfg.MODEL.RPN.MIN_SIZE
+        # Inference parameters
+        bbox_reg_weights                = cfg.MODEL.RPN.TEST.BBOX_REG_WEIGHTS
+        self.box2box_transform          = Box2BoxTransform(weights=bbox_reg_weights)
 
+        self.pre_nms_topk               = {True : cfg.MODEL.RPN.TRAIN.PRE_NMS_TOPK, False : cfg.MODEL.RPN.TEST.PRE_NMS_TOPK}
+        self.post_nms_topk              = {True : cfg.MODEL.RPN.TRAIN.POST_NMS_TOPK, False : cfg.MODEL.RPN.TEST.POST_NMS_TOPK}
+
+        self.nms_threshold              = cfg.MODEL.RPN.TEST.NMS_THRESH
+        self.min_box_size               = cfg.MODEL.RPN.TEST.MIN_SIZE
+
+        # RPN Head
+        self.anchor_generator = build_anchor_generator(cfg, [input_shape[f] for f in self.in_features])
         if cfg.MODEL.RPN.HEAD_NAME == 'StandardRPNHead' :
             self.rpn_head = StandardRPNHead(cfg, [input_shape[f] for f in self.in_features])
         else:
             raise ValueError(f"Invalid rpn head class '{cfg.MODEL.RPN.HEAD_NAME}'")
-
-        self.anchor_generator = build_anchor_generator(cfg, [input_shape[f] for f in self.in_features])
-        self.box2box_transform = Box2BoxTransform(weights=cfg.MODEL.RPN.BBOX_REG_WEIGHTS)
-        self.matcher = Matcher(
-            cfg.MODEL.RPN.IOU_THRESHOLDS,
-            cfg.MODEL.RPN.IOU_LABELS,
-            allow_low_quality_matches=True,
-        )
 
     def forward(self, images, features, gt_instances):
         features = [features[f] for f in self.in_features]

@@ -8,13 +8,13 @@ def build_optimizer(cfg, model: torch.nn.Module) -> torch.optim.Optimizer:
             continue
 
         lr = cfg.SOLVER.BASE_LR / cfg.SOLVER.ACCUMULATE
-        weight_decay = cfg.SOLVER.WEIGHT_DECAY
+        weight_decay = cfg.SOLVER.WEIGHT_DECAY.BASE
 
         if key.endswith("norm.weight") or key.endswith("norm.bias"):
-            weight_decay = cfg.SOLVER.WEIGHT_DECAY_NORM
+            weight_decay = cfg.SOLVER.WEIGHT_DECAY.NORM
         elif key.endswith(".bias"):
             lr = cfg.SOLVER.BASE_LR * cfg.SOLVER.BIAS_LR_FACTOR
-            weight_decay = cfg.SOLVER.WEIGHT_DECAY_BIAS
+            weight_decay = cfg.SOLVER.WEIGHT_DECAY.BIAS
             
         params += [{"params": [value], "lr": lr, "weight_decay": weight_decay}]
 

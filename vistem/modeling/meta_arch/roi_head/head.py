@@ -25,61 +25,59 @@ class StandardROIHeads(DefaultMetaArch):
     def __init__(self, cfg, input_shape):
         super().__init__(cfg)
 
-        # fmt
-        self.in_features                    = cfg.MODEL.ROI_HEAD.IN_FEATURES
-        self.num_classes                    = cfg.MODEL.ROI_HEAD.NUM_CLASSES
+        self.in_features                    = cfg.MODEL.ROI.IN_FEATURES
+        self.num_classes                    = cfg.MODEL.ROI.NUM_CLASSES
         in_channels                         = [input_shape[f].channels for f in self.in_features]
+
         assert len(set(in_channels)) == 1, in_channels
         for feat in self.in_features:
             assert feat in input_shape.keys(), f"'{feat}' is not in backbone({input_shape.keys()})"
 
-        self.proposal_append_gt             = cfg.MODEL.ROI_HEAD.PROPOSAL_APPEND_GT
-        self.batch_size_per_image           = cfg.MODEL.ROI_HEAD.BATCH_SIZE_PER_IMAGE
-        self.positive_fraction              = cfg.MODEL.ROI_HEAD.POSITIVE_FRACTION
-        
-        self.train_on_pred_boxes            = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
+        # Matcher
+        iou_thres                           = cfg.MODEL.ROI.MATCHER.IOU_THRESHOLDS
+        iou_labels                          = cfg.MODEL.ROI.MATCHER.IOU_LABELS
+        allow_low_quality_matches           = cfg.MODEL.ROI.MATCHER.LOW_QUALITY_MATCHES
+        self.proposal_matcher               = Matcher(iou_thres, iou_labels, allow_low_quality_matches=allow_low_quality_matches)
 
-        self.test_score_thresh              = cfg.MODEL.ROI_HEAD.TEST_SCORE_THRESH
-        self.test_nms_thresh                = cfg.MODEL.ROI_HEAD.TEST_NMS_THRESH
+        # Sampling
+        self.proposal_append_gt             = cfg.MODEL.ROI.SAMPLING.PROPOSAL_APPEND_GT
+        self.batch_size_per_image           = cfg.MODEL.ROI.SAMPLING.BATCH_SIZE_PER_IMAGE
+        self.positive_fraction              = cfg.MODEL.ROI.SAMPLING.POSITIVE_FRACTION
+
+        # Pooling Parameters and Module
+        box_pooler_type                     = cfg.MODEL.ROI.BOX_POOLING.TYPE
+        box_pooler_resolution               = cfg.MODEL.ROI.BOX_POOLING.RESOLUTION
+        box_pooler_sampling_ratio           = cfg.MODEL.ROI.BOX_POOLING.SAMPLING_RATIO
+        self.box_pooler = ROIPooler(
+            output_size=box_pooler_resolution,
+            scales=tuple(1.0 / input_shape[k].stride for k in self.in_features),
+            sampling_ratio=box_pooler_sampling_ratio,
+            pooler_type=box_pooler_type,
+        )
+
+        # Loss parameters
+        self.loss_weight                    = cfg.MODEL.ROI.BOX_LOSS.LOSS_WEIGHT
+        self.smooth_l1_beta                 = cfg.MODEL.ROI.BOX_LOSS.SMOOTH_L1_BETA
+
+        if isinstance(self.loss_weight, float):
+            self.loss_weight = {"loss_cls": self.loss_weight, "loss_loc": self.loss_weight}
+        assert 'loss_cls' in self.loss_weight
+        assert 'loss_loc' in self.loss_weight
+
+        # Inference parameters
+        bbox_reg_weights                    = cfg.MODEL.ROI.TEST.BBOX_REG_WEIGHTS
+        self.box2box_transform              = Box2BoxTransform(weights=bbox_reg_weights)
+
+        self.test_nms_thresh                = cfg.MODEL.ROI.TEST.NMS_THRESH
+        self.score_threshhold               = cfg.TEST.SCORE_THRESH
         self.max_detections_per_image       = cfg.TEST.DETECTIONS_PER_IMAGE
 
-        # func
-        self.proposal_matcher = Matcher(
-                cfg.MODEL.ROI_HEAD.IOU_THRESHOLDS,
-                cfg.MODEL.ROI_HEAD.IOU_LABELS,
-                allow_low_quality_matches=False,
-            )
-        self.box2box_transform = Box2BoxTransform(weights=cfg.MODEL.ROI_HEAD.BBOX_REG_WEIGHTS)
-
-        # Pooling
-        pooler_resolution = cfg.MODEL.ROI_HEAD.BOX_POOLER_RESOLUTION
-        self.box_pooler = ROIPooler(
-            output_size=pooler_resolution,
-            scales=tuple(1.0 / input_shape[k].stride for k in self.in_features),
-            sampling_ratio=cfg.MODEL.ROI_HEAD.BOX_POOLER_SAMPLING_RATIO,
-            pooler_type=cfg.MODEL.ROI_HEAD.BOX_POOLER_TYPE,
-        )
-
-        # Head Module
+        # ROI Head
         self.box_head = BoxHead(
-            cfg, ShapeSpec(channels=in_channels[0], height=pooler_resolution, width=pooler_resolution)
+            cfg, ShapeSpec(channels=in_channels[0], height=box_pooler_resolution, width=box_pooler_resolution)
         )
-
-        # Classification and Localization
-        input_shape = self.box_head.output_shape
-        if isinstance(input_shape, int):  # some backward compatibility
-            input_shape = ShapeSpec(channels=input_shape)
-        input_size = input_shape.channels * (input_shape.width or 1) * (input_shape.height or 1)
-        self.cls_score = Linear(input_size, self.num_classes + 1)
-        num_bbox_reg_classes = 1 if cfg.MODEL.ROI_HEAD.CLS_AGNOSTIC_BBOX_REG else self.num_classes
-        box_dim = len(self.box2box_transform.weights)
-        self.bbox_pred = Linear(input_size, num_bbox_reg_classes * box_dim)
-
-        # Loss variables
-        loss_weight = cfg.MODEL.ROI_HEAD.BBOX_REG_LOSS_WEIGHT
-        self.loss_weight = {"loss_cls": loss_weight, "loss_loc": loss_weight}
-        self.smooth_l1_beta = cfg.MODEL.ROI_HEAD.BBOX_SMOOTH_L1_BETA
-
+        # self.train_on_pred_boxes            = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
+    
     def forward(
         self,
         images: ImageList,
@@ -95,12 +93,7 @@ class StandardROIHeads(DefaultMetaArch):
         
         features = [features[f] for f in self.in_features]
         box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
-        box_features = self.box_head(box_features)
-        
-        if box_features.dim() > 2:
-            box_features = torch.flatten(box_features, start_dim=1)
-        scores = self.cls_score(box_features)
-        proposal_deltas = self.bbox_pred(box_features)
+        scores, proposal_deltas = self.box_head(box_features)
         del box_features
 
         if self.training:
@@ -290,7 +283,7 @@ class StandardROIHeads(DefaultMetaArch):
             box_cls = box_cls[valid_mask]
 
         box_cls = box_cls[:, :-1]
-        keep_idxs = box_cls > self.test_score_thresh  # R x K
+        keep_idxs = box_cls > self.score_threshhold  # R x K
         box_cls = box_cls[keep_idxs]
 
         num_bbox_reg_classes = box_delta.shape[1] // 4
@@ -326,24 +319,26 @@ class BoxHead(nn.Module):
 
         super().__init__()
 
-        num_conv = cfg.MODEL.ROI_HEAD.BOX_HEAD_NUM_CONV
-        conv_dim = cfg.MODEL.ROI_HEAD.BOX_HEAD_CONV_DIM
-        num_fc = cfg.MODEL.ROI_HEAD.BOX_HEAD_NUM_FC
-        fc_dim = cfg.MODEL.ROI_HEAD.BOX_HEAD_FC_DIM
+        num_classes     = cfg.MODEL.ROI.NUM_CLASSES
+
+        num_conv        = cfg.MODEL.ROI.BOX_HEAD.NUM_CONV
+        conv_dim        = cfg.MODEL.ROI.BOX_HEAD.CONV_DIM
+        conv_norm       = cfg.MODEL.ROI.BOX_HEAD.CONV_NORM
+
+        num_fc          = cfg.MODEL.ROI.BOX_HEAD.NUM_FC
+        fc_dim          = cfg.MODEL.ROI.BOX_HEAD.FC_DIM
 
         conv_dims = [conv_dim] * num_conv
         fc_dims = [fc_dim] * num_fc
         assert len(conv_dims) + len(fc_dims) > 0
 
-        conv_norm = cfg.MODEL.ROI_HEAD.BOX_HEAD_NORM
-
-        self._output_size = (input_shape.channels, input_shape.height, input_shape.width)
+        output_size = (input_shape.channels, input_shape.height, input_shape.width)
 
         # Conv Subnet
         self.conv_subnet = []
         for k, conv_dim in enumerate(conv_dims):
             conv = Conv2d(
-                self._output_size[0],
+                output_size[0],
                 conv_dim,
                 kernel_size=3,
                 padding=1,
@@ -353,15 +348,22 @@ class BoxHead(nn.Module):
             )
             self.add_module("conv{}".format(k + 1), conv)
             self.conv_subnet.append(conv)
-            self._output_size = (conv_dim, self._output_size[1], self._output_size[2])
+            output_size = (conv_dim, output_size[1], output_size[2])
 
         # FC Subnet
         self.fc_subnet = []
         for k, fc_dim in enumerate(fc_dims):
-            fc = Linear(np.prod(self._output_size), fc_dim)
+            fc = Linear(np.prod(output_size), fc_dim)
             self.add_module("fc{}".format(k + 1), fc)
             self.fc_subnet.append(fc)
-            self._output_size = fc_dim
+            output_size = fc_dim
+
+        # Classification and Localization
+        input_size = input_shape.channels * (input_shape.width or 1) * (input_shape.height or 1)
+        self.cls_score = Linear(input_size, self.num_classes + 1)
+
+        box_dim = len(cfg.MODEL.ROI.TEST.BBOX_REG_WEIGHTS)
+        self.bbox_pred = Linear(input_size, self.num_classes * box_dim)
 
         # Initialization
         for layer in self.conv_subnet:
@@ -377,12 +379,8 @@ class BoxHead(nn.Module):
                 x = torch.flatten(x, start_dim=1)
             for layer in self.fc_subnet:
                 x = F.relu(layer(x))
-        return x
 
-    @property
-    def output_shape(self) -> ShapeSpec:
-        o = self._output_size
-        if isinstance(o, int):
-            return ShapeSpec(channels=o)
-        else:
-            return ShapeSpec(channels=o[0], height=o[1], width=o[2])
+        scores = self.cls_score(x)
+        proposal_deltas = self.bbox_pred(x)
+
+        return scores, proposal_deltas

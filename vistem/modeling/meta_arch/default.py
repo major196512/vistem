@@ -13,7 +13,7 @@ class DefaultMetaArch(nn.Module):
         super().__init__()
         self.device = torch.device(cfg.DEVICE)
         
-        self.vis_period               = cfg.VIS_PERIOD
+        self.vis_period               = cfg.TEST.VIS_PERIOD
         self.input_format             = cfg.INPUT.FORMAT
 
         pixel_mean = torch.Tensor(cfg.MODEL.PIXEL_MEAN).to(self.device).view(3, 1, 1)

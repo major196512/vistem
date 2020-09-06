@@ -4,23 +4,23 @@ from bisect import bisect_right
 from typing import List
 
 def build_lr_scheduler(cfg, optimizer: torch.optim.Optimizer) -> torch.optim.lr_scheduler._LRScheduler:
-    name = cfg.SOLVER.LR_SCHEDULER_NAME
+    name = cfg.SOLVER.SCHEDULER.NAME
     if name == "WarmupMultiStepLR":
         return WarmupMultiStepLR(
             optimizer,
-            cfg.SOLVER.STEPS,
-            cfg.SOLVER.GAMMA,
-            warmup_factor=cfg.SOLVER.WARMUP_FACTOR,
-            warmup_iters=cfg.SOLVER.WARMUP_ITERS,
-            warmup_method=cfg.SOLVER.WARMUP_METHOD,
+            cfg.SOLVER.SCHEDULER.STEPS,
+            cfg.SOLVER.SCHEDULER.GAMMA,
+            warmup_factor=cfg.SOLVER.WARMUP.FACTOR,
+            warmup_iters=cfg.SOLVER.WARMUP.ITERS,
+            warmup_method=cfg.SOLVER.WARMUP.METHOD,
         )
     elif name == "WarmupCosineLR":
         return WarmupCosineLR(
             optimizer,
             cfg.SOLVER.MAX_ITER,
-            warmup_factor=cfg.SOLVER.WARMUP_FACTOR,
-            warmup_iters=cfg.SOLVER.WARMUP_ITERS,
-            warmup_method=cfg.SOLVER.WARMUP_METHOD,
+            warmup_factor=cfg.SOLVER.WARMUP.FACTOR,
+            warmup_iters=cfg.SOLVER.WARMUP.ITERS,
+            warmup_method=cfg.SOLVER.WARMUP.METHOD,
         )
     else:
         raise ValueError("Unknown LR scheduler: {}".format(name))

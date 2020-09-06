@@ -4,7 +4,7 @@
 
 - `BACKBONE`(str) : The backbone network which is used in META_ARCHITECTURE.
 
-- `PROPOSAL_GENERATOR`(str : 'RPN') : Choose one of proposal generator.
+- `PROPOSAL_GENERATOR`(str) : Choose one of proposal generator.
 
 - `WEIGHTS`(str) : The directory of a loaded model if specified.
 
@@ -65,6 +65,8 @@
     - `IOU_THRESHOLDS`(List[float]) : Labeling points from IOUs between anchors and ground-truth bounding box.
 
     - `IOU_LABELS`(List[float]) : Labeling values from IOU_THRESHOLDS to clarify if a candidate is positive, negative or ignore label. 
+
+    - `LOW_QUALITY_MATCHES`(bool) : Toggle for Producing additional matches for predictions that have only low-quality matches.
 
 - `LOSS` :
     

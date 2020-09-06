@@ -14,13 +14,13 @@ class ResizeShortestEdge(TransformGen):
         super().__init__()
 
         if is_train:
-            sample_style = cfg.INPUT.MIN_SIZE_TRAIN_SAMPLING
-            min_size = cfg.INPUT.MIN_SIZE_TRAIN
-            max_size = cfg.INPUT.MAX_SIZE_TRAIN
+            sample_style = cfg.INPUT.RESIZE.MIN_SIZE_TRAIN_SAMPLING
+            min_size = cfg.INPUT.RESIZE.MIN_SIZE_TRAIN
+            max_size = cfg.INPUT.RESIZE.MAX_SIZE_TRAIN
         else:
             sample_style = "choice"
-            min_size = cfg.INPUT.MIN_SIZE_TEST
-            max_size = cfg.INPUT.MAX_SIZE_TEST
+            min_size = cfg.INPUT.RESIZE.MIN_SIZE_TEST
+            max_size = cfg.INPUT.RESIZE.MAX_SIZE_TEST
 
         assert sample_style in ["range", "choice"], sample_style
         if isinstance(min_size, int):

@@ -10,7 +10,7 @@ class RandomFlip(TransformGen):
     # def __init__(self, prob=0.5):
     def __init__(self, cfg, is_train):
         super().__init__()
-        self.init_local(prob=cfg.INPUT.FLIP_PROB if is_train else 0)
+        self.init_local(prob=cfg.INPUT.FLIP.PROB if is_train else 0)
 
     def init_local(self, prob=0.5):
         horiz, vert = True, False
