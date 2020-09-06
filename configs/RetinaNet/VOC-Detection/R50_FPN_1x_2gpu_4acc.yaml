@@ -1,7 +1,5 @@
 BASE_CFG : './configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml'
 OUTPUT_DIR : './output_voc/retinanet_R50_FPN_1x_2gpu_4acc'
-VIS_PERIOD : 10
-# SEED : 0
 
 SOLVER :
   ACCUMULATE : 4

@@ -1,12 +1,12 @@
 MODEL :
   META_ARCHITECTURE : 'RetinaNet'
+  BACKBONE : 'RetinaNetFPN'
   WEIGHTS : './pretrained_weights/R-50.pkl'
+  
   ANCHOR_GENERATOR:
     NAME : 'DefaultAnchorGenerator'
     SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"] 
     ASPECT_RATIOS : [[0.5, 1.0, 2.0]]
-  BACKBONE :
-    NAME : 'RetinaNetFPN'
   RESNETS : 
     DEPTH : 50
     OUT_FEATURES : ['res3', 'res4', 'res5']
@@ -15,10 +15,17 @@ MODEL :
     IN_FEATURES : ['res3', 'res4', 'res5']
   RETINANET :
     IN_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']
-    NUM_CONVS : 4
+    MATCHER:
+      IOU_THRESHOLDS : [0.4, 0.5]
+      IOU_LABELS : [0, -1, 1]
+      LOW_QUALITY_MATCHES : True
+    LOSS :
+      NORMALIZER : 100.0
+      NORMALIZER_MOMENTUM : 0.9
+    HEAD :
+      NUM_CONVS : 4
 
 SOLVER :
   OPTIMIZER : 'SGD'
-  ACCUMULATE : 1
   IMG_PER_BATCH : 16
   BASE_LR : 0.01
