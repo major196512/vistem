@@ -359,11 +359,12 @@ class BoxHead(nn.Module):
             output_size = fc_dim
 
         # Classification and Localization
-        input_size = input_shape.channels * (input_shape.width or 1) * (input_shape.height or 1)
-        self.cls_score = Linear(input_size, self.num_classes + 1)
-
+        if isinstance(output_size, int) : input_size = output_size
+        else : input_size = output_size[0] * output_size[1] * output_size[2]
         box_dim = len(cfg.MODEL.ROI.TEST.BBOX_REG_WEIGHTS)
-        self.bbox_pred = Linear(input_size, self.num_classes * box_dim)
+
+        self.cls_score = Linear(input_size, num_classes + 1)
+        self.bbox_pred = Linear(input_size, num_classes * box_dim)
 
         # Initialization
         for layer in self.conv_subnet:

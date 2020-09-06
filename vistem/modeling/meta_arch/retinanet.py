@@ -46,7 +46,7 @@ class RetinaNet(DefaultMetaArch):
         self.topk_candidates            = cfg.MODEL.RETINANET.TEST.TOPK_CANDIDATES
         self.nms_threshold              = cfg.MODEL.RETINANET.TEST.NMS_THRESH
         
-        self.score_threshhold           = cfg.TEST.SCORE_THRESH
+        self.score_threshold            = cfg.TEST.SCORE_THRESH
         self.max_detections_per_image   = cfg.TEST.DETECTIONS_PER_IMAGE
 
         # Backbone Network

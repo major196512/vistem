@@ -31,7 +31,7 @@ We train our models with 8-gpu and 16 images per batch.
 | Meta <br>Architecture | Gradient <br>Accumulate | BBox <br>AP | BBox <br>AP50 | BBox <br>AP75 | Config File |
 | :---:                 | :---:                   | :---:       | :---:         | :---:         | :---:       |
 | [RetinaNet](https://drive.google.com/file/d/17Ygzh4kVOQIwfpgejpvIhD9tCS1_yaqB/view?usp=sharing) | 1 | 55.533 | 81.730 | 60.504 | [R50_FPN_1x_8gpu](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml) |
-| [Faster RCNN](https://drive.google.com/file/d/1HXsID3vX-3f1-gRDF2UaYjLkuBSprHek/view?usp=sharing) | 1 | 54.282 | 81.827 | 60.048 | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_8gpu.yaml) |
+| [Faster RCNN](https://drive.google.com/file/d/1om1m7a77_ZYTcDCwEcXmv8Xx8IUgysYc/view?usp=sharing) | 1 | 54.282 | 81.827 | 60.048 | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_8gpu.yaml) |
 | CornerNet | 1 | In Progress | | | |
 | RepPoints | 1 | In Progress | | | |
 
