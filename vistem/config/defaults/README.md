@@ -18,7 +18,7 @@
 
   - `MIN_SIZE_TRAIN`(Union[Tuple[int], int] : Minimum size of resized images when training.
 
-  - `MAX_SIZE_TRAIN`(Union[Tuple[int], int]) : Maximum size of resized images when training.
+  - `MAX_SIZE_TRAIN`(int) : Maximum size of resized images when training.
 
   - `MIN_SIZE_TEST`(int) : Minumum size of resized images when testing.
 

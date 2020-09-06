@@ -9,11 +9,10 @@ from .test import _TEST
 _C = CN()
 _C.SEED = -1
 _C.DEVICE = 'cuda'
-_C.VIS_PERIOD = 0
 _C.OUTPUT_DIR = './outputs'
 
-_C.LOADER = _LOADER
 _C.INPUT = _INPUT
-_C.SOLVER = _SOLVER
+_C.LOADER = _LOADER
 _C.MODEL = _MODEL
+_C.SOLVER = _SOLVER
 _C.TEST = _TEST
