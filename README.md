@@ -49,7 +49,7 @@ In training MS-COCO datasets, We only evaluate with 8-gpu settings.
 | Meta <br>Architecture | BBox <br>AP   | Config File   |
 | :---:                 | :---:         | :---:         |
 | [RetinaNet](https://drive.google.com/file/d/1Tyq3O56WkbdVVOpTBNlcC1vf620Z6Czv/view?usp=sharing) | 36.524 | [R50_FPN_1x_8gpu](./configs/RetinaNet/COCO-Detection/R50_FPN_1x_8gpu.yaml) |
-| [Faster RCNN]() | xx.xxx | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/COCO-Detection/R50e2e_FPN_1x_8gpu.yaml) |
+| [Faster RCNN](https://drive.google.com/file/d/1fC1G--BwGabal2Pe1rFt2m_WZUmgKcdT/view?usp=sharing) | 38.021 | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/COCO-Detection/R50e2e_FPN_1x_8gpu.yaml) |
 | CornerNet             | In Progress|          |
 | RepPoints             | In Progress|          |
 
