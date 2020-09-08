@@ -50,7 +50,7 @@ class VOCProposalEvaluator:
             predictions = self._pred_proposals
 
         results = OrderedDict()
-        mAP = defaultdict(list)  # iou -> ap
+        mAP = defaultdict(float)  # iou -> ap
 
         for thresh in range(50, 100, 5):
             rec, prec, ap = voc_eval(
@@ -60,7 +60,7 @@ class VOCProposalEvaluator:
                 ovthresh=thresh / 100.0,
                 use_07_metric=self._is_2007,
             )
-            mAP[thresh].append(ap * 100)
+            mAP[thresh] = ap * 100
         
         results["proposal"] = {"AP": np.mean(list(mAP.values())), "AP50": mAP[50], "AP75": mAP[75]}
         
