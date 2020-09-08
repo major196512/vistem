@@ -108,7 +108,7 @@ class RPN(DefaultMetaArch):
         )
 
         # regression loss
-        if self.box_reg_loss_type == 'smooth_l1':
+        if self.loc_loss_type == 'smooth_l1':
             loss_box_reg = smooth_l1_loss(
                 pred_anchor_deltas[foreground_idxs],
                 gt_anchors_deltas[foreground_idxs],
@@ -116,7 +116,7 @@ class RPN(DefaultMetaArch):
                 reduction="sum",
             )
         else:
-            raise ValueError(f"Invalid rpn box reg loss type '{self.box_reg_loss_type}'")
+            raise ValueError(f"Invalid rpn box reg loss type '{self.loc_loss_type}'")
 
         normalizer = self.batch_size_per_image * num_images
         losses = {

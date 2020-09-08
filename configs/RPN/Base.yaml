@@ -15,7 +15,7 @@ MODEL :
   FPN :
     IN_FEATURES : ['res2', 'res3', 'res4', 'res5']
   RPN :
-  HEAD_NAME : 'StandardRPNHead'
+    HEAD_NAME : 'StandardRPNHead'
     IN_FEATURES : ["p2", "p3", "p4", "p5", "p6"]
     MATCHER :
       IOU_THRESHOLDS : [0.3, 0.7]
@@ -26,7 +26,7 @@ MODEL :
       POST_NMS_TOPK: 1000
     TEST : 
       PRE_NMS_TOPK: 1000  # Per FPN level
-      POST_NMS_TOPK: 1000
+      POST_NMS_TOPK: 100
 
 SOLVER :
   OPTIMIZER : 'SGD'

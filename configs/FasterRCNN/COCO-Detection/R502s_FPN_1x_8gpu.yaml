@@ -1,0 +1,5 @@
+BASE_CFG : './configs/FasterRCNN/COCO-Detection/Base-COCO.yaml'
+OUTPUT_DIR : './output_coco/faster_R502s_FPN_1x_8gpu'
+
+MODEL:
+  WEIGHTS : './pretrained_weights/rpn_r50_1x.pth'
