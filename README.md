@@ -40,7 +40,7 @@ When training using `Gradient Accumulation`, you must assign a accumulate variab
 | Meta <br>Architecture | Gradient <br>Accumulate | BBox <br>AP   | BBox <br>AP50 | BBox <br>AP75 | Config File   |
 | :---:             | :---:     | :---:     | :---:     | :---:     | :---:         |
 | [RetinaNet](https://drive.google.com/file/d/17akQ5GgxWgVYWZb57rzjEQZo0ZF197zI/view?usp=sharing) | 4 | 51.011 | 79.542 | 54.105 | [R50_FPN_1x_2gpu_4acc](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_2gpu_4acc.yaml) |
-| Faster RCNN | 4 | In Progress | | | [R50e2e_FPN_1x_2gpu_4acc](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_2gpu_4acc.yaml) |
+| [Faster RCNN](https://drive.google.com/file/d/1228vNhWED2M_Iv0tT0LpUHp5CIf6rypa/view?usp=sharing) | 4 | 49.928 | 80.683 | 53.101 | [R50e2e_FPN_1x_2gpu_4acc](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_2gpu_4acc.yaml) |
 | CornerNet | 1 | In Progress | | | |
 | RepPoints | 1 | In Progress | | | |
 
