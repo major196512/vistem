@@ -4,7 +4,7 @@ BACKBONE_REGISTRY = Registry("BACKBONE")
 from .backbone import Backbone
 from .resnet import ResNet
 from .fpn import FPN
-from .plan import PLAN
+# from .plan import PLAN
 
 from vistem.structures import ShapeSpec
 
