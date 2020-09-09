@@ -7,9 +7,9 @@ from vistem.modeling.layers import Conv2d, get_norm
 from vistem.utils import weight_init
 from vistem.structures import ShapeSpec
 
-class FPN(Backbone):
+class FPNBase(Backbone):
     def __init__(self, bottom_up, in_features, out_channels, norm="", top_block=None, fuse_type="sum"):
-        super(FPN, self).__init__()
+        super(FPNBase, self).__init__()
         assert isinstance(bottom_up, Backbone)
 
         in_strides = [bottom_up.out_feature_strides[f] for f in in_features]

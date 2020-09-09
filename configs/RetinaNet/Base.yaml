@@ -1,6 +1,6 @@
 MODEL :
   META_ARCHITECTURE : 'RetinaNet'
-  BACKBONE : 'RetinaNetFPN'
+  BACKBONE : 'FPN'
   WEIGHTS : './pretrained_weights/R-50.pkl'
   
   ANCHOR_GENERATOR:
@@ -12,6 +12,7 @@ MODEL :
     OUT_FEATURES : ['res3', 'res4', 'res5']
     NORM : 'FrozenBN'
   FPN :
+    NAME : 'RetinaNetFPN'
     IN_FEATURES : ['res3', 'res4', 'res5']
   RETINANET :
     IN_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']

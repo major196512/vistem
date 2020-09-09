@@ -22,6 +22,8 @@
 
 ## FPN
 
+- `NAME`(str) : Choose a module for FPN.
+  
 - `IN_FEATURES`(List[str]) : Input levels of features from bottom-up pathway network.
 
 - `OUT_CHANNELS`(int) : Dimension of each output feature maps.
