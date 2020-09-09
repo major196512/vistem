@@ -60,7 +60,7 @@ def get_extensions():
 
 setup(
     name="vistem",
-    version="0.1-beta.1",
+    version="0.1.1",
     author="Taeho Choi",
     url="https://github.com/major196512/vistem",
     packages=find_packages(exclude=("configs")),
