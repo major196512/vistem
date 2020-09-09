@@ -1,1 +1,1 @@
-from .build import ResNetFPN, RetinaNetFPN
+from .build import FPN
