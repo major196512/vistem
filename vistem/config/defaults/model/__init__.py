@@ -6,6 +6,7 @@ from .resnet import _RESNETS
 from .retinanet import _RETINANET
 from .rpn import _RPN
 from .roi import _ROI
+from .plan import _PLAN
 
 _MODEL = CN()
 _MODEL.META_ARCHITECTURE = 'RetinaNet'
@@ -22,3 +23,4 @@ _MODEL.RESNETS = _RESNETS
 _MODEL.RETINANET = _RETINANET
 _MODEL.ROI = _ROI
 _MODEL.RPN = _RPN
+_MODEL.PLAN = _PLAN

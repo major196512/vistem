@@ -1,0 +1,6 @@
+BASE_CFG : './configs/FasterRCNN/PLAN/VOC-Detection/R50e2e_FPN_1x_8gpu.yaml'
+OUTPUT_DIR : './output_voc/plan_R50e2e_FPN_1x_2gpu_4acc'
+
+SOLVER :
+  ACCUMULATE : 4
+  IMG_PER_BATCH : 1
