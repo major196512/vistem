@@ -5,7 +5,9 @@ import math
 
 from vistem.modeling.backbone import Backbone
 from vistem.structures import ShapeSpec
+
 from .attn_top_down import AttnTopDown
+from .attn_bottom_up import AttnBottomUp
 
 __all__ = ['PLANBase']
 
@@ -28,6 +30,14 @@ class PLANBase(Backbone):
 
         self.fpn = fpn
         self.top_down = AttnTopDown(in_features, in_channels, out_channels, num_heads, num_convs, erf)
+        
+
+    def forward(self, x):
+        fpn_features = self.fpn(x)
+        top_down_features = self.top_down(fpn_features)
+
+        results = top_down_features
+        return results
 
     @property
     def size_divisibility(self):
@@ -41,9 +51,3 @@ class PLANBase(Backbone):
             for name in self._out_features
         }
 
-    def forward(self, x):
-        fpn_features = self.fpn(x)
-        top_down_features = self.top_down(fpn_features)
-
-        results = top_down_features
-        return results
