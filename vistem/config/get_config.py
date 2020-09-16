@@ -14,8 +14,10 @@ def get_cfg(cfg_file):
 def merge_cfg(cfg, file):
     cfg_file = yaml.load(open(file), Loader=yaml.Loader)
     base_file = cfg_file.pop('BASE_CFG', None)
-    if base_file is not None:
-        merge_cfg(cfg, base_file)
+    data_file = cfg_file.pop('DATA_CFG', None)
+    
+    if base_file is not None : merge_cfg(cfg, base_file)
+    if data_file is not None : merge_cfg(cfg, data_file)
 
     cfg_file = CN(cfg_file)
     cfg.merge_from_other_cfg(cfg_file)

@@ -1,4 +1,5 @@
-BASE_CFG : './configs/RetinaNet/VOC-Detection/Base-VOC.yaml'
+BASE_CFG : './configs/RetinaNet/Base.yaml'
+DATA_CFG : './configs/Base-VOC.yaml'
 OUTPUT_DIR : './output_voc/retinanet_R50_FPN_1x_8gpu'
 
 MODEL:

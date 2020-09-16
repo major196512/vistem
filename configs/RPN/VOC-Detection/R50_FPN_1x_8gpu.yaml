@@ -1,4 +1,5 @@
-BASE_CFG : './configs/RPN/VOC-Detection/Base-VOC.yaml'
+BASE_CFG : './configs/RPN/Base.yaml'
+DATA_CFG : './configs/Base-VOC.yaml'
 OUTPUT_DIR : './output_voc/rpn_R50_FPN_1x_8gpu'
 
 MODEL:

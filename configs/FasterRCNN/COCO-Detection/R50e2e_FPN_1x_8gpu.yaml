@@ -1,4 +1,5 @@
-BASE_CFG : './configs/FasterRCNN/COCO-Detection/Base-COCO.yaml'
+BASE_CFG : './configs/FasterRCNN/Base.yaml'
+DATA_CFG : './configs/Base-COCO.yaml'
 OUTPUT_DIR : './output_coco/faster_R50e2e_FPN_1x_8gpu'
 
 MODEL:
