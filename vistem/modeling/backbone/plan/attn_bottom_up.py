@@ -28,7 +28,8 @@ class AttnBottomUp(nn.Module):
         self.conv_values = nn.ModuleList(conv_values)
 
         conv_weights = []
-        for in_channel in in_channels.values():
+        for top_idx in in_features[1:]:
+            in_channel = in_channels[top_idx]
             concat = []
             concat.append(Conv2d(in_channel, in_channel, 1, stride=1, bias=False))
             for _ in range(num_convs-1):
@@ -36,7 +37,7 @@ class AttnBottomUp(nn.Module):
                 concat.append(Conv2d(in_channel, in_channel, 1, stride=1, bias=False))
             conv_weights.append(nn.Sequential(*concat))
 
-        self.conv_weights = nn.Sequential(*conv_weights)
+        self.conv_weights = nn.ModuleList(conv_weights)
 
         for layer in self.modules():
             if isinstance(layer, Conv2d):

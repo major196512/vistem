@@ -8,6 +8,7 @@ from vistem.structures import ShapeSpec
 
 from .attn_top_down import AttnTopDown
 from .attn_bottom_up import AttnBottomUp
+from .attn_concat import AttnFuse
 
 __all__ = ['PLANBase']
 
@@ -29,14 +30,17 @@ class PLANBase(Backbone):
         assert out_channels % num_heads == 0
 
         self.fpn = fpn
-        self.top_down = AttnTopDown(in_features, in_channels, out_channels, num_heads, num_convs, erf)
+        self.plan_top_down = AttnTopDown(in_features, in_channels, out_channels, num_heads, num_convs, erf)
+        self.plan_bottom_up = AttnBottomUp(in_features, in_channels, out_channels, num_heads, num_convs, erf)
+        self.plan_fuse = AttnFuse(in_features, out_channels, num_weights)
         
 
     def forward(self, x):
         fpn_features = self.fpn(x)
-        top_down_features = self.top_down(fpn_features)
+        top_down_features = self.plan_top_down(fpn_features)
+        bottom_up_features = self.plan_bottom_up(fpn_features)
+        results = self.plan_fuse(fpn_features, top_down_features, bottom_up_features)
 
-        results = top_down_features
         return results
 
     @property
