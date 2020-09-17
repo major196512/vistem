@@ -1,6 +1,7 @@
 from yacs.config import CfgNode as CN
 
 _RETINANET = CN()
+_RETINANET.ENABLE = False
 
 _RETINANET.IN_FEATURES = ['p3', 'p4', 'p5', 'p6', 'p7']
 _RETINANET.NUM_CLASSES = 80

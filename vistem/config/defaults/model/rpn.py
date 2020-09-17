@@ -1,6 +1,8 @@
 from yacs.config import CfgNode as CN
 
 _RPN = CN()
+_RPN.ENABLE = False
+
 _RPN.HEAD_NAME = "StandardRPNHead"
 _RPN.IN_FEATURES = ["res4"]
 

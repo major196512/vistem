@@ -8,8 +8,17 @@ def get_cfg(cfg_file):
     cfg = _C.clone()
 
     merge_cfg(cfg, cfg_file)
+    enable_cfg(cfg)
 
     return cfg
+
+def enable_cfg(cfg):
+    keys = list(cfg.keys())
+    for key in keys:
+        if not isinstance(cfg[key], CN) : continue
+        enable = cfg[key].pop('ENABLE', True)
+        if enable : enable_cfg(cfg[key])
+        else : cfg.pop(key)
 
 def merge_cfg(cfg, file):
     cfg_file = yaml.load(open(file), Loader=yaml.Loader)

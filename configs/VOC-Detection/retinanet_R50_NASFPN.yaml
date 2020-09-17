@@ -3,5 +3,14 @@ DATA_CFG : './configs/DataConfig/VOC-Detection.yaml'
 OUTPUT_DIR : './output_voc/retinanet_R50_NASFPN'
 
 MODEL:
-  BACKBONE : 'NAS_FPN'
   WEIGHTS : './pretrained_weights/R-50.pkl'
+  BACKBONE : 'NAS_FPN'
+  
+  RESNETS :
+    ENABLE : True
+  FPN : 
+    ENABLE : True
+  NAS_FPN :
+    ENABLE : True
+  RETINANET :
+    ENABLE : True

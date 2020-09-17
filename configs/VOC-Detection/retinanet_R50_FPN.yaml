@@ -4,3 +4,11 @@ OUTPUT_DIR : './output_voc/retinanet_R50_FPN'
 
 MODEL:
   WEIGHTS : './pretrained_weights/R-50.pkl'
+  BACKBONE : 'FPN'
+  
+  RESNETS :
+    ENABLE : True
+  FPN : 
+    ENABLE : True
+  RETINANET :
+    ENABLE : True
