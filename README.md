@@ -41,7 +41,7 @@ When training using `Gradient Accumulation`, you must assign a `cfg.SOLVER.ACUUM
 In this table below, we run our models with 4 gradient accumulation and 4 images per batch with 2-gpu.
 
 | Meta <br>Architecture | Backbone <br>Network | BBox <br>AP   | BBox <br>AP50 | BBox <br>AP75 |
-| :---:             | :---:     | :---:     | :---:     | :---:     | :---:         |
+| :---:             | :---:     | :---:     | :---:     | :---:     |
 | [RetinaNet](https://drive.google.com/file/d/17akQ5GgxWgVYWZb57rzjEQZo0ZF197zI/view?usp=sharing) | ResNet-50<br>with FPN | 51.011 | 79.542 | 54.105 |
 | [RetinaNet]() | ResNet-50<br>with NAS-FPN | In Progress |  |  |
 | [Faster RCNN](https://drive.google.com/file/d/1228vNhWED2M_Iv0tT0LpUHp5CIf6rypa/view?usp=sharing) | ResNet-50<br>with FPN | 49.928 | 80.683 | 53.101 |
