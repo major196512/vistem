@@ -31,7 +31,9 @@ We train our models with 8-gpu and 16 images per batch.
 | Meta <br>Architecture | Backbone <br>Network | BBox <br>AP | BBox <br>AP50 | BBox <br>AP75 | Config File |
 | :---:                 | :---:                   | :---:       | :---:         | :---:         | :---:       |
 | [RetinaNet](https://drive.google.com/file/d/17Ygzh4kVOQIwfpgejpvIhD9tCS1_yaqB/view?usp=sharing) | ResNet-50<br>with FPN | 55.533 | 81.730 | 60.504 | [retinanet_R50_FPN](./configs/VOC-Detection/retinanet_R50_FPN.yaml) |
+| [RetinaNet]() | ResNet-50<br>with NAS-FPN | In Progress |  |  | [retinanet_R50_NASFPN](./configs/VOC-Detection/retinanet_R50_NASFPN.yaml) |
 | [Faster RCNN](https://drive.google.com/file/d/1om1m7a77_ZYTcDCwEcXmv8Xx8IUgysYc/view?usp=sharing) | ResNet-50<br>with FPN | 54.282 | 81.827 | 60.048 | [faster_R50_FPN](./configs/VOC-Detection/faster_R50_FPN.yaml) |
+| [Faster RCNN]() | ResNet-50<br>with NAS-FPN | In Progress |  |  | [faster_R50_NASFPN](./configs/VOC-Detection/faster_R50_NASFPN.yaml) |
 | CornerNet | ResNet-50<br>with FPN | In Progress | | | |
 | RepPoints | ResNet-50<br>with FPN | In Progress | | | |
 
@@ -41,7 +43,9 @@ In this table below, we run our models with 4 gradient accumulation and 4 images
 | Meta <br>Architecture | Backbone <br>Network | BBox <br>AP   | BBox <br>AP50 | BBox <br>AP75 |
 | :---:             | :---:     | :---:     | :---:     | :---:     | :---:         |
 | [RetinaNet](https://drive.google.com/file/d/17akQ5GgxWgVYWZb57rzjEQZo0ZF197zI/view?usp=sharing) | ResNet-50<br>with FPN | 51.011 | 79.542 | 54.105 |
+| [RetinaNet]() | ResNet-50<br>with NAS-FPN | In Progress |  |  |
 | [Faster RCNN](https://drive.google.com/file/d/1228vNhWED2M_Iv0tT0LpUHp5CIf6rypa/view?usp=sharing) | ResNet-50<br>with FPN | 49.928 | 80.683 | 53.101 |
+| [Faster RCNN]() | ResNet-50<br>with NAS-FPN | In Progress |  |  |
 | CornerNet | ResNet-50<br>with FPN | In Progress | | |
 | RepPoints | ResNet-50<br>with FPN | In Progress | | |
 
@@ -50,7 +54,9 @@ In training MS-COCO datasets, We only evaluate with 8-gpu settings.
 | Meta <br>Architecture | Backbone <br>Network | BBox <br>AP   | Config File   |
 | :---:                 | :---:         | :---:         | :---:         |
 | [RetinaNet](https://drive.google.com/file/d/1Tyq3O56WkbdVVOpTBNlcC1vf620Z6Czv/view?usp=sharing) | ResNet-50<br>with FPN | 36.524 | [retinanet_R50_FPN](./configs/COCO-Detection/retinanet_R50_FPN.yaml) |
+| [RetinaNet]() | ResNet-50<br>with FPN | In Progress | [retinanet_R50_NASFPN](./configs/COCO-Detection/retinanet_R50_NASFPN.yaml) |
 | [Faster RCNN](https://drive.google.com/file/d/1fC1G--BwGabal2Pe1rFt2m_WZUmgKcdT/view?usp=sharing) | ResNet-50<br>with FPN | 38.021 | [faster_R50_FPN](./configs/COCO-Detection/faster_R50_FPN.yaml) |
+| [Faster RCNN]() | ResNet-50<br>with NAS-FPN | In Progress | [faster_R50_NASFPN](./configs/COCO-Detection/faster_R50_NASFPN.yaml) |
 | CornerNet              | ResNet-50<br>with FPN| In Progress|          |
 | RepPoints              | ResNet-50<br>with FPN| In Progress|          |
 
