@@ -22,6 +22,8 @@
 
 ## FPN
 
+- `ENABLE`
+
 - `NAME`(str) : Choose a module for FPN.
   
 - `IN_FEATURES`(List[str]) : Input levels of features from bottom-up pathway network.
@@ -33,6 +35,8 @@
 - `FUSE_TYPE`(str) : Fuse feature map from bottom-up pathway and top-down pathway model by 'sum' or 'avg'.
 
 ## NAS_FPN
+
+- `ENABLE`
   
 - `CELL_INPUTS`(List[List[str]]) : Input levels of features for each NAS_FPN cells.
 
@@ -43,6 +47,8 @@
 - `NAS_OUTPUTS`(List[str]) : Final output features.
 
 ## RESNETS
+
+- `ENABLE`
 
 - `FREEZE_AT`(int) : Index of layers to freeze layers.
 
@@ -67,6 +73,8 @@
 - `STRIDE_IN_1X1`(bool) : Whether stride in 1x1 conv layer or 3x3 conv.
 
 ## RETINANET
+
+- `ENABLE`
 
 - `IN_FEATURES`(List[str]) : Input levels of features from backbone network.
 
@@ -107,6 +115,8 @@
     - `NMS_THRESH`(float) : Threshold in NMS.
 
 ## ROI
+
+- `ENABLE`
 
 - `NAME`(str) : Choose one of ROI Heads.
 
@@ -165,6 +175,9 @@
 <!-- TRAIN_ON_PRED_BOXES(bool : False)-->
 
 ## RPN
+
+- `ENABLE`
+
 - `HEAD_NAME`(str) : Choose one of the RPN Heads.
 
 - `IN_FEATURES`(List[str]) : Input levels of features from backbone network
