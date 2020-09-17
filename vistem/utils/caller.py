@@ -8,7 +8,7 @@ def find_caller():
     while frame:
         code = frame.f_code
         caller = frame.f_globals['__name__']
-        if caller == '__main__' : caller = 'vistem'
+        if caller in ['__main__', '__mp_main__'] : caller = 'vistem'
         
         if (os.path.join("utils", "caller.") not in code.co_filename) and (os.path.join("utils", "logger.") not in code.co_filename):
             return {
