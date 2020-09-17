@@ -1,0 +1,6 @@
+BASE_CFG : './configs/VOC-Detection/faster_R50_FPN.yaml'
+OUTPUT_DIR : './output_voc/faster_R50_FPN_accumulate'
+
+SOLVER :
+  ACCUMULATE : 4
+  IMG_PER_BATCH : 4
