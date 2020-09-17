@@ -19,6 +19,9 @@ MODEL :
     CELL_OUTPUTS : ['p4', 'p4', 'p3', 'p4', 'p5', 'p7', 'p6']
     CELL_OPS : ['GP', 'SUM', 'SUM', 'SUM', 'GP_SUM', 'GP_SUM', 'GP']
     NAS_OUTPUTS : ['rcb3','rcb4','rcb5','rcb7','rcb6']
+  PANET:
+    IN_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']
+    OUT_CHANNELS : 256
   RETINANET :
     IN_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']
     MATCHER:

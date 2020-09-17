@@ -15,6 +15,14 @@ MODEL :
   FPN :
     NAME : 'ResNetFPN'
     IN_FEATURES : ['res2', 'res3', 'res4', 'res5']
+  NAS_FPN:
+    CELL_INPUTS : [['p5', 'p3'],['rcb1', 'p3'],['rcb2', 'p2'],['rcb3', 'rcb2'],['rcb3', 'rcb4', 'p4'],['rcb2', 'rcb5', 'p6'],['rcb5', 'rcb6']]
+    CELL_OUTPUTS : ['p3', 'p3', 'p2', 'p3', 'p4', 'p6', 'p5']
+    CELL_OPS : ['GP', 'SUM', 'SUM', 'SUM', 'GP_SUM', 'GP_SUM', 'GP']
+    NAS_OUTPUTS : ['rcb3','rcb4','rcb5','rcb7','rcb6']
+  PANET:
+    IN_FEATURES : ['p2', 'p3', 'p4', 'p5', 'p6']
+    OUT_CHANNELS : 256
   RPN :
     HEAD_NAME : 'StandardRPNHead'
     IN_FEATURES : ["p2", "p3", "p4", "p5", "p6"]

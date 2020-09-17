@@ -4,6 +4,7 @@ from .anchor import _ANCHOR_GENERATOR
 
 from .fpn import _FPN
 from .nas_fpn import _NAS_FPN
+from .panet import _PANET
 
 from .resnet import _RESNETS
 from .retinanet import _RETINANET
@@ -25,7 +26,7 @@ _MODEL.ANCHOR_GENERATOR = _ANCHOR_GENERATOR
 
 _MODEL.FPN = _FPN
 _MODEL.NAS_FPN = _NAS_FPN
-
+_MODEL.PANET = _PANET
 _MODEL.RESNETS = _RESNETS
 _MODEL.RETINANET = _RETINANET
 
