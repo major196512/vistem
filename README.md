@@ -28,30 +28,31 @@ ln -s $DATA data
 ## Pascal VOC
 We train our models with 8-gpu and 16 images per batch.
 
-| Meta <br>Architecture | Gradient <br>Accumulate | BBox <br>AP | BBox <br>AP50 | BBox <br>AP75 | Config File |
+| Meta <br>Architecture | Backbone <br>Network | BBox <br>AP | BBox <br>AP50 | BBox <br>AP75 | Config File |
 | :---:                 | :---:                   | :---:       | :---:         | :---:         | :---:       |
-| [RetinaNet](https://drive.google.com/file/d/17Ygzh4kVOQIwfpgejpvIhD9tCS1_yaqB/view?usp=sharing) | 1 | 55.533 | 81.730 | 60.504 | [R50_FPN_1x_8gpu](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_8gpu.yaml) |
-| [Faster RCNN](https://drive.google.com/file/d/1om1m7a77_ZYTcDCwEcXmv8Xx8IUgysYc/view?usp=sharing) | 1 | 54.282 | 81.827 | 60.048 | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_8gpu.yaml) |
-| CornerNet | 1 | In Progress | | | |
-| RepPoints | 1 | In Progress | | | |
+| [RetinaNet](https://drive.google.com/file/d/17Ygzh4kVOQIwfpgejpvIhD9tCS1_yaqB/view?usp=sharing) | ResNet-50<br>with FPN | 55.533 | 81.730 | 60.504 | [retinanet_R50_FPN](./configs/VOC-Detection/retinanet_R50_FPN.yaml) |
+| [Faster RCNN](https://drive.google.com/file/d/1om1m7a77_ZYTcDCwEcXmv8Xx8IUgysYc/view?usp=sharing) | ResNet-50<br>with FPN | 54.282 | 81.827 | 60.048 | [faster_R50_FPN](./configs/VOC-Detection/faster_R50_FPN.yaml) |
+| CornerNet | ResNet-50<br>with FPN | In Progress | | | |
+| RepPoints | ResNet-50<br>with FPN | In Progress | | | |
 
-When training using `Gradient Accumulation`, you must assign a accumulate variable in config file.
+When training using `Gradient Accumulation`, you must assign a `cfg.SOLVER.ACUUMULATE` and `cfg.SOLVER.IMG_PER_BATCH` in config file.
+In this table below, we run our models with 4 gradient accumulation and 4 images per batch with 2-gpu.
 
-| Meta <br>Architecture | Gradient <br>Accumulate | BBox <br>AP   | BBox <br>AP50 | BBox <br>AP75 | Config File   |
+| Meta <br>Architecture | Backbone <br>Network | BBox <br>AP   | BBox <br>AP50 | BBox <br>AP75 |
 | :---:             | :---:     | :---:     | :---:     | :---:     | :---:         |
-| [RetinaNet](https://drive.google.com/file/d/17akQ5GgxWgVYWZb57rzjEQZo0ZF197zI/view?usp=sharing) | 4 | 51.011 | 79.542 | 54.105 | [R50_FPN_1x_2gpu_4acc](./configs/RetinaNet/VOC-Detection/R50_FPN_1x_2gpu_4acc.yaml) |
-| [Faster RCNN](https://drive.google.com/file/d/1228vNhWED2M_Iv0tT0LpUHp5CIf6rypa/view?usp=sharing) | 4 | 49.928 | 80.683 | 53.101 | [R50e2e_FPN_1x_2gpu_4acc](./configs/FasterRCNN/VOC-Detection/R50e2e_FPN_1x_2gpu_4acc.yaml) |
-| CornerNet | 1 | In Progress | | | |
-| RepPoints | 1 | In Progress | | | |
+| [RetinaNet](https://drive.google.com/file/d/17akQ5GgxWgVYWZb57rzjEQZo0ZF197zI/view?usp=sharing) | ResNet-50<br>with FPN | 51.011 | 79.542 | 54.105 |
+| [Faster RCNN](https://drive.google.com/file/d/1228vNhWED2M_Iv0tT0LpUHp5CIf6rypa/view?usp=sharing) | ResNet-50<br>with FPN | 49.928 | 80.683 | 53.101 |
+| CornerNet | ResNet-50<br>with FPN | In Progress | | |
+| RepPoints | ResNet-50<br>with FPN | In Progress | | |
 
 ## MS-COCO
 In training MS-COCO datasets, We only evaluate with 8-gpu settings.
-| Meta <br>Architecture | BBox <br>AP   | Config File   |
-| :---:                 | :---:         | :---:         |
-| [RetinaNet](https://drive.google.com/file/d/1Tyq3O56WkbdVVOpTBNlcC1vf620Z6Czv/view?usp=sharing) | 36.524 | [R50_FPN_1x_8gpu](./configs/RetinaNet/COCO-Detection/R50_FPN_1x_8gpu.yaml) |
-| [Faster RCNN](https://drive.google.com/file/d/1fC1G--BwGabal2Pe1rFt2m_WZUmgKcdT/view?usp=sharing) | 38.021 | [R50e2e_FPN_1x_8gpu](./configs/FasterRCNN/COCO-Detection/R50e2e_FPN_1x_8gpu.yaml) |
-| CornerNet             | In Progress|          |
-| RepPoints             | In Progress|          |
+| Meta <br>Architecture | Backbone <br>Network | BBox <br>AP   | Config File   |
+| :---:                 | :---:         | :---:         | :---:         |
+| [RetinaNet](https://drive.google.com/file/d/1Tyq3O56WkbdVVOpTBNlcC1vf620Z6Czv/view?usp=sharing) | ResNet-50<br>with FPN | 36.524 | [retinanet_R50_FPN](./configs/COCO-Detection/retinanet_R50_FPN.yaml) |
+| [Faster RCNN](https://drive.google.com/file/d/1fC1G--BwGabal2Pe1rFt2m_WZUmgKcdT/view?usp=sharing) | ResNet-50<br>with FPN | 38.021 | [faster_R50_FPN](./configs/COCO-Detection/faster_R50_FPN.yaml) |
+| CornerNet              | ResNet-50<br>with FPN| In Progress|          |
+| RepPoints              | ResNet-50<br>with FPN| In Progress|          |
 
 # Training
 ## Single Machine
