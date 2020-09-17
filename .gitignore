@@ -1,11 +1,18 @@
+# IDE
 .vscode
 
+# run cache folders
 __pycache__/
 
+# input, output folders
 /data
 /pretrained_weights
 /output*
 
+# Build
 /build
 /vistem.egg-info
 /vistem/ext.cpython-36m-x86_64-linux-gnu.so
+
+# develop config files
+/configs/dev*

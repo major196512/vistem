@@ -1,6 +1,0 @@
-BASE_CFG : './configs/RetinaNet/Base.yaml'
-DATA_CFG : './configs/Base-COCO.yaml'
-OUTPUT_DIR : './output_coco/retinanet_R50_FPN_1x_8gpu'
-
-MODEL:
-  WEIGHTS : './pretrained_weights/R-50.pkl'
