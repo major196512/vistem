@@ -5,6 +5,7 @@ from .backbone import Backbone
 from .resnet import ResNet
 from .fpn import FPN
 from .nas_fpn import NAS_FPN
+from .panet import PANet
 # from .plan import PLAN
 
 from vistem.structures import ShapeSpec
