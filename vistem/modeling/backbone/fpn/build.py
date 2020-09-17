@@ -5,7 +5,7 @@ from vistem.modeling.backbone.resnet import ResNet
 from .fpn import FPNBase
 from .top_block import LastLevelMaxPool, LastLevelP6P7
 
-__all__ = ['ResNetFPN', 'RetinaNetFPN']
+__all__ = ['FPN']
 
 @BACKBONE_REGISTRY.register()
 def FPN(cfg, input_shape: ShapeSpec):

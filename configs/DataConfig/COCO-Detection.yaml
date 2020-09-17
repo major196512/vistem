@@ -1,5 +1,3 @@
-BASE_CFG : './configs/FasterRCNN/Base.yaml'
-
 INPUT: 
   FORMAT : 'BGR'
   RESIZE : 
@@ -30,5 +28,7 @@ TEST :
   VIS_PERIOD : 20
 
 MODEL :
+  RETINANET :
+    NUM_CLASSES : 80
   ROI :
     NUM_CLASSES : 80

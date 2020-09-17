@@ -1,5 +1,0 @@
-BASE_CFG : './configs/FasterRCNN/VOC-Detection/Base-VOC.yaml'
-OUTPUT_DIR : './output_voc/faster_R50e2e_FPN_1x_8gpu'
-
-MODEL:
-  WEIGHTS : './pretrained_weights/R-50.pkl'

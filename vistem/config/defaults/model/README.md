@@ -32,6 +32,16 @@
 
 - `FUSE_TYPE`(str) : Fuse feature map from bottom-up pathway and top-down pathway model by 'sum' or 'avg'.
 
+## NAS_FPN
+  
+- `CELL_INPUTS`(List[List[str]]) : Input levels of features for each NAS_FPN cells.
+
+- `CELL_OUTPUTS`(List[str]) : Output levels of features for each NAS_FPN cells.
+
+- `CELL_OPS`(List[str]) : Choose one of binary operations for each cells.
+
+- `NAS_OUTPUTS`(List[str]) : Final output features.
+
 ## RESNETS
 
 - `FREEZE_AT`(int) : Index of layers to freeze layers.
