@@ -13,8 +13,8 @@ class DefaultAnchorGenerator(nn.Module):
     def __init__(self, cfg, input_shape: List[ShapeSpec]):
         super().__init__()
         # fmt: off
-        sizes         = cfg.MODEL.ANCHOR_GENERATOR.SIZES
-        aspect_ratios = cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS
+        sizes         = cfg.ANCHOR_GENERATOR.SIZES
+        aspect_ratios = cfg.ANCHOR_GENERATOR.ASPECT_RATIOS
         self.strides  = [x.stride for x in input_shape]
         # fmt: on
 

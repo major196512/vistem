@@ -2,8 +2,10 @@ from vistem.utils import setup_logger
 from vistem.loader import MetadataCatalog
 
 from .default import Evaluators
+
 from .coco import COCOEvaluator
 from .pascal_voc import VOCEvaluator
+from .imagenet import ImageNetEvaluator
 
 __all__ = ['build_evaluator']
 
@@ -17,6 +19,8 @@ def build_evaluator(cfg):
         evaluators.append(COCOEvaluator(cfg))
     elif eval_type == 'voc':
         evaluators.append(VOCEvaluator(cfg))
+    elif eval_type == 'imagenet':
+        evaluators.append(ImageNetEvaluator(cfg))
     else:
         _logger.error(f'There is no Evaluation Type : {test_dataset}')
 

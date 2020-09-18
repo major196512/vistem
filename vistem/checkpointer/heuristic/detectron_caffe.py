@@ -62,6 +62,9 @@ def convert_basic_c2_names(original_keys):
     layer_keys = [k.replace(".branch2b.", ".conv2.") for k in layer_keys]
     layer_keys = [k.replace(".branch2c.", ".conv3.") for k in layer_keys]
 
+    # fc
+    layer_keys = [k.replace("fc1000.", "linear.") for k in layer_keys]
+
     # DensePose substitutions
     layer_keys = [re.sub("^body.conv.fcn", "body_conv_fcn", k) for k in layer_keys]
     layer_keys = [k.replace("AnnIndex.lowres", "ann_index_lowres") for k in layer_keys]

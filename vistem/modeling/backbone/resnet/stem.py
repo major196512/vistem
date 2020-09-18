@@ -9,7 +9,7 @@ from vistem.utils import weight_init
 __all__ = ['BasicStem']
 
 class BasicStem(nn.Module):
-    def __init__(self, in_channels=3, out_channels=64, norm="BN"):
+    def __init__(self, in_channels=3, out_channels=64, norm="BN", stem_bias=True):
         super().__init__()
         self.conv1 = Conv2d(
             in_channels,
@@ -17,7 +17,7 @@ class BasicStem(nn.Module):
             kernel_size=7,
             stride=2,
             padding=3,
-            bias=False,
+            bias=stem_bias,
             norm=get_norm(norm, out_channels),
         )
         weight_init.c2_msra_fill(self.conv1)

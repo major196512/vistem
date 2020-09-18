@@ -25,8 +25,8 @@ class StandardROIHeads(DefaultMetaArch):
     def __init__(self, cfg, input_shape):
         super().__init__(cfg)
 
-        self.in_features                    = cfg.MODEL.ROI.IN_FEATURES
-        self.num_classes                    = cfg.MODEL.ROI.NUM_CLASSES
+        self.in_features                    = cfg.META_ARCH.ROI.IN_FEATURES
+        self.num_classes                    = cfg.META_ARCH.ROI.NUM_CLASSES
         in_channels                         = [input_shape[f].channels for f in self.in_features]
 
         assert len(set(in_channels)) == 1, in_channels
@@ -34,20 +34,20 @@ class StandardROIHeads(DefaultMetaArch):
             assert feat in input_shape.keys(), f"'{feat}' is not in backbone({input_shape.keys()})"
 
         # Matcher
-        iou_thres                           = cfg.MODEL.ROI.MATCHER.IOU_THRESHOLDS
-        iou_labels                          = cfg.MODEL.ROI.MATCHER.IOU_LABELS
-        allow_low_quality_matches           = cfg.MODEL.ROI.MATCHER.LOW_QUALITY_MATCHES
+        iou_thres                           = cfg.META_ARCH.ROI.MATCHER.IOU_THRESHOLDS
+        iou_labels                          = cfg.META_ARCH.ROI.MATCHER.IOU_LABELS
+        allow_low_quality_matches           = cfg.META_ARCH.ROI.MATCHER.LOW_QUALITY_MATCHES
         self.proposal_matcher               = Matcher(iou_thres, iou_labels, allow_low_quality_matches=allow_low_quality_matches)
 
         # Sampling
-        self.proposal_append_gt             = cfg.MODEL.ROI.SAMPLING.PROPOSAL_APPEND_GT
-        self.batch_size_per_image           = cfg.MODEL.ROI.SAMPLING.BATCH_SIZE_PER_IMAGE
-        self.positive_fraction              = cfg.MODEL.ROI.SAMPLING.POSITIVE_FRACTION
+        self.proposal_append_gt             = cfg.META_ARCH.ROI.SAMPLING.PROPOSAL_APPEND_GT
+        self.batch_size_per_image           = cfg.META_ARCH.ROI.SAMPLING.BATCH_SIZE_PER_IMAGE
+        self.positive_fraction              = cfg.META_ARCH.ROI.SAMPLING.POSITIVE_FRACTION
 
         # Pooling Parameters and Module
-        box_pooler_type                     = cfg.MODEL.ROI.BOX_POOLING.TYPE
-        box_pooler_resolution               = cfg.MODEL.ROI.BOX_POOLING.RESOLUTION
-        box_pooler_sampling_ratio           = cfg.MODEL.ROI.BOX_POOLING.SAMPLING_RATIO
+        box_pooler_type                     = cfg.META_ARCH.ROI.BOX_POOLING.TYPE
+        box_pooler_resolution               = cfg.META_ARCH.ROI.BOX_POOLING.RESOLUTION
+        box_pooler_sampling_ratio           = cfg.META_ARCH.ROI.BOX_POOLING.SAMPLING_RATIO
         self.box_pooler = ROIPooler(
             output_size=box_pooler_resolution,
             scales=tuple(1.0 / input_shape[k].stride for k in self.in_features),
@@ -56,8 +56,8 @@ class StandardROIHeads(DefaultMetaArch):
         )
 
         # Loss parameters
-        self.loss_weight                    = cfg.MODEL.ROI.BOX_LOSS.LOSS_WEIGHT
-        self.smooth_l1_beta                 = cfg.MODEL.ROI.BOX_LOSS.SMOOTH_L1_BETA
+        self.loss_weight                    = cfg.META_ARCH.ROI.BOX_LOSS.LOSS_WEIGHT
+        self.smooth_l1_beta                 = cfg.META_ARCH.ROI.BOX_LOSS.SMOOTH_L1_BETA
 
         if isinstance(self.loss_weight, float):
             self.loss_weight = {"loss_cls": self.loss_weight, "loss_loc": self.loss_weight}
@@ -65,10 +65,10 @@ class StandardROIHeads(DefaultMetaArch):
         assert 'loss_loc' in self.loss_weight
 
         # Inference parameters
-        bbox_reg_weights                    = cfg.MODEL.ROI.TEST.BBOX_REG_WEIGHTS
+        bbox_reg_weights                    = cfg.META_ARCH.ROI.TEST.BBOX_REG_WEIGHTS
         self.box2box_transform              = Box2BoxTransform(weights=bbox_reg_weights)
 
-        self.test_nms_thresh                = cfg.MODEL.ROI.TEST.NMS_THRESH
+        self.test_nms_thresh                = cfg.META_ARCH.ROI.TEST.NMS_THRESH
         self.score_threshhold               = cfg.TEST.SCORE_THRESH
         self.max_detections_per_image       = cfg.TEST.DETECTIONS_PER_IMAGE
 
@@ -319,14 +319,14 @@ class BoxHead(nn.Module):
 
         super().__init__()
 
-        num_classes     = cfg.MODEL.ROI.NUM_CLASSES
+        num_classes     = cfg.META_ARCH.ROI.NUM_CLASSES
 
-        num_conv        = cfg.MODEL.ROI.BOX_HEAD.NUM_CONV
-        conv_dim        = cfg.MODEL.ROI.BOX_HEAD.CONV_DIM
-        conv_norm       = cfg.MODEL.ROI.BOX_HEAD.CONV_NORM
+        num_conv        = cfg.META_ARCH.ROI.BOX_HEAD.NUM_CONV
+        conv_dim        = cfg.META_ARCH.ROI.BOX_HEAD.CONV_DIM
+        conv_norm       = cfg.META_ARCH.ROI.BOX_HEAD.CONV_NORM
 
-        num_fc          = cfg.MODEL.ROI.BOX_HEAD.NUM_FC
-        fc_dim          = cfg.MODEL.ROI.BOX_HEAD.FC_DIM
+        num_fc          = cfg.META_ARCH.ROI.BOX_HEAD.NUM_FC
+        fc_dim          = cfg.META_ARCH.ROI.BOX_HEAD.FC_DIM
 
         conv_dims = [conv_dim] * num_conv
         fc_dims = [fc_dim] * num_fc
@@ -361,7 +361,7 @@ class BoxHead(nn.Module):
         # Classification and Localization
         if isinstance(output_size, int) : input_size = output_size
         else : input_size = output_size[0] * output_size[1] * output_size[2]
-        box_dim = len(cfg.MODEL.ROI.TEST.BBOX_REG_WEIGHTS)
+        box_dim = len(cfg.META_ARCH.ROI.TEST.BBOX_REG_WEIGHTS)
 
         self.cls_score = Linear(input_size, num_classes + 1)
         self.bbox_pred = Linear(input_size, num_classes * box_dim)

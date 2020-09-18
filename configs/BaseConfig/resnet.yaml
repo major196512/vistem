@@ -1,0 +1,19 @@
+BACKBONE :
+  NAME : 'ResNet'
+  RESNETS : 
+    ENABLE : True
+    DEPTH : 50
+    OUT_FEATURES : ['res5']
+    NORM : 'FrozenBN'
+    STEM_BIAS : True
+
+META_ARCH : 
+  NAME : 'ResNet'
+  RESNET :
+    ENABLE : True
+    IN_FEATURES : 'res5'
+
+SOLVER :
+  OPTIMIZER : 'SGD'
+  IMG_PER_BATCH : 256
+  BASE_LR : 0.1

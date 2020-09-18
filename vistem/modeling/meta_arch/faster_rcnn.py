@@ -15,7 +15,7 @@ __all__ = ['FasterRCNN']
 class FasterRCNN(DefaultMetaArch):
     def __init__(self, cfg):
         super().__init__(cfg)
-        self.in_features              = cfg.MODEL.RPN.IN_FEATURES
+        self.in_features              = cfg.META_ARCH.RPN.IN_FEATURES
 
         # Backbone Network
         self.backbone = build_backbone(cfg)

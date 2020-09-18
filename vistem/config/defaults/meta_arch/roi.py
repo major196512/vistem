@@ -5,7 +5,6 @@ _ROI.ENABLE = False
 
 _ROI.NAME = 'StandardROIHeads'
 _ROI.IN_FEATURES = ["p2", "p3", "p4", "p5", "p6"]
-_ROI.NUM_CLASSES = 80
 
 _ROI.MATCHER = CN()
 _ROI.MATCHER.IOU_THRESHOLDS = [0.5]
