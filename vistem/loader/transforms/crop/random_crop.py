@@ -16,8 +16,10 @@ class RandomCrop(TransformGen):
         crop_type = cfg.INPUT.CROP.TYPE
         crop_size = cfg.INPUT.CROP.SIZE
 
-        assert crop_type in ["relative_range", "relative", "absolute", "absolute_range"]
+        self.init_local(crop_type, crop_size)
 
+    def init_local(self, crop_type, crop_size):
+        assert crop_type in ["relative_range", "relative", "absolute", "absolute_range"]
         self._init(locals())
 
     def get_transform(self, img):
