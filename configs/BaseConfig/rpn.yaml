@@ -1,13 +1,5 @@
-MODEL :
-  META_ARCHITECTURE : 'ProposalNetwork'
-  BACKBONE : 'FPN'
-  PROPOSAL_GENERATOR : 'RPN'
-  WEIGHTS : './pretrained_weights/R-50.pkl'
-  
-  ANCHOR_GENERATOR:
-    NAME : 'DefaultAnchorGenerator'
-    SIZES: [[32], [64], [128], [256], [512]]  # One size for each in feature map
-    ASPECT_RATIOS : [[0.5, 1.0, 2.0]]
+BACKBONE :
+  NAME : 'FPN'
   RESNETS : 
     DEPTH : 50
     OUT_FEATURES : ['res2', 'res3', 'res4', 'res5']
@@ -23,6 +15,10 @@ MODEL :
   PANET:
     IN_FEATURES : ['p2', 'p3', 'p4', 'p5', 'p6']
     OUT_CHANNELS : 256
+
+META_ARCH :
+  NAME : 'ProposalNetwork'
+  PROPOSAL_GENERATOR : 'RPN'
   RPN :
     HEAD_NAME : 'StandardRPNHead'
     IN_FEATURES : ["p2", "p3", "p4", "p5", "p6"]
@@ -37,6 +33,11 @@ MODEL :
       PRE_NMS_TOPK: 1000  # Per FPN level
       POST_NMS_TOPK: 100
 
+ANCHOR_GENERATOR:
+  NAME : 'DefaultAnchorGenerator'
+  SIZES: [[32], [64], [128], [256], [512]]  # One size for each in feature map
+  ASPECT_RATIOS : [[0.5, 1.0, 2.0]]
+  
 SOLVER :
   OPTIMIZER : 'SGD'
   IMG_PER_BATCH : 16

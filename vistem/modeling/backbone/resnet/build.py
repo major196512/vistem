@@ -13,7 +13,7 @@ def make_stage(block_class, num_blocks, first_stride, **kwargs):
     
 @BACKBONE_REGISTRY.register()
 def ResNet(cfg, input_shape):
-    norm = cfg.MODEL.RESNETS.NORM
+    norm = cfg.BACKBONE.RESNETS.NORM
     stem = BasicStem(
         in_channels=input_shape.channels,
         out_channels=cfg.BACKBONE.RESNETS.STEM_OUT_CHANNELS,

@@ -1,17 +1,19 @@
 BASE_CFG : './configs/BaseConfig/retinanet.yaml'
 DATA_CFG : './configs/DataConfig/VOC-Detection.yaml'
+
+WEIGHTS : './pretrained_weights/R-50.pkl'
 OUTPUT_DIR : './output_voc/retinanet_R50_PANet'
 
-MODEL:
-  WEIGHTS : './pretrained_weights/R-50.pkl'
-  BACKBONE : 'PANet'
-
+BACKBONE : 
+  NAME : 'PANet'
   RESNETS :
     ENABLE : True
   FPN : 
     ENABLE : True
   PANET :
     ENABLE : True
+
+META_ARCH :
   RETINANET :
     ENABLE : True
     IN_FEATURES : ['n3', 'n4', 'n5', 'n6', 'n7']

@@ -54,7 +54,7 @@ class RPN(DefaultMetaArch):
 
         # RPN Head
         self.anchor_generator = build_anchor_generator(cfg, [input_shape[f] for f in self.in_features])
-        if cfg.MODEL.RPN.HEAD_NAME == 'StandardRPNHead' :
+        if cfg.META_ARCH.RPN.HEAD_NAME == 'StandardRPNHead' :
             self.rpn_head = StandardRPNHead(cfg, [input_shape[f] for f in self.in_features])
         else:
             raise ValueError(f"Invalid rpn head class '{cfg.META_ARCH.RPN.HEAD_NAME}'")
