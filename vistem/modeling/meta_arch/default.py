@@ -46,6 +46,10 @@ class DefaultMetaArch(nn.Module):
         images = [self.normalizer(x) for x in images]
         images = ImageList.from_tensors(images, self.backbone.size_divisibility)
 
+        if "annotations" in batched_inputs[0]:
+            gt_annotations = [x["annotations"].to(self.device) for x in batched_inputs]
+        else : gt_annotations = None
+
         if "instances" in batched_inputs[0]:
             gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
         else : gt_instances = None
@@ -54,4 +58,4 @@ class DefaultMetaArch(nn.Module):
             proposals = [x["proposals"].to(self.device) for x in batched_inputs]
         else : proposals = None
 
-        return images, gt_instances, proposals
+        return images, gt_annotations, gt_instances, proposals

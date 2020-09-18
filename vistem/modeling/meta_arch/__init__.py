@@ -2,6 +2,9 @@ from vistem.utils.registry import Registry
 META_ARCH_REGISTRY = Registry("META_ARCH")
 
 from .default import DefaultMetaArch
+
+from .resnet import ResNet
+
 from .retinanet import RetinaNet
 from .rpn import ProposalNetwork
 from .faster_rcnn import FasterRCNN
