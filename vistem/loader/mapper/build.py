@@ -38,15 +38,16 @@ class DatasetMapper:
         image_shape = image.shape[:2]
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
 
+        if 'annotations' in dataset_dict:
+            dataset_dict = annotation_mapper(dataset_dict)
+            
         if not self.is_train:
-            dataset_dict.pop("annotations", None)
+            # dataset_dict.pop("annotations", None)
             dataset_dict.pop("instances", None)
             return dataset_dict
 
         if "instances" in dataset_dict:
             dataset_dict = instance_mapper(dataset_dict, transforms, image_shape)
-        if 'annotations' in dataset_dict:
-            dataset_dict = annotation_mapper(dataset_dict)
 
 
         return dataset_dict
