@@ -2,7 +2,10 @@ from vistem.utils.registry import Registry
 BACKBONE_REGISTRY = Registry("BACKBONE")
 
 from .backbone import Backbone
+
 from .resnet import ResNet
+from .efficientnet import EfficientNet
+
 from .fpn import FPN
 from .nas_fpn import NAS_FPN
 from .panet import PANet
