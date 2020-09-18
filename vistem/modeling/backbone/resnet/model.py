@@ -82,7 +82,6 @@ class ResNetBase(Backbone):
         return self
 
     def output_shape(self):
-        print(self._out_features)
         return {
             name: ShapeSpec(
                 channels=self._out_feature_channels[name], stride=self._out_feature_strides[name]
