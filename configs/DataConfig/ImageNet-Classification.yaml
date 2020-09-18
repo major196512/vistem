@@ -12,11 +12,12 @@ INPUT:
     SIZE : [224, 224]
 
 LOADER :
-  TRAIN_DATASET : ('tiny_train', )
-  TEST_DATASET : 'tiny_val'
+  TRAIN_DATASET : ('imagenet_train', )
+  TEST_DATASET : 'imagenet_val'
   TRAIN_SHUFFLE : True
   NUM_WORKERS : 0
   ASPECT_GROUPING : False
+  TEST_SINGLE_IMG : False
 
 SOLVER :
   MAX_ITER : 640000
@@ -33,4 +34,4 @@ TEST :
   VIS_PERIOD : 20
 
 META_ARCH :
-  NUM_CLASSES : 200
+  NUM_CLASSES : 1000

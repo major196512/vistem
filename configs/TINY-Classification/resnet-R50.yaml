@@ -1,5 +1,0 @@
-BASE_CFG : './configs/BaseConfig/resnet.yaml'
-DATA_CFG : './configs/DataConfig/TINY-Classification.yaml'
-
-WEIGHTS : './pretrained_weights/R-50.pkl'
-OUTPUT_DIR : './output_tiny/retnet-R50'

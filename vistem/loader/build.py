@@ -56,6 +56,10 @@ def build_train_loader(cfg):
         return data_loader
 
 def build_test_loader(cfg):
+    images_per_batch = cfg.SOLVER.IMG_PER_BATCH
+    assert images_per_batch >= dist.get_world_size()
+    assert images_per_batch % dist.get_world_size() == 0
+
     data = [DatasetCatalog.get(cfg.LOADER.TEST_DATASET)]
     data = list(itertools.chain.from_iterable(data))
 
@@ -64,13 +68,18 @@ def build_test_loader(cfg):
     dataset = MapDataset(dataset, mapper)
 
     sampler = InferenceSampler(len(dataset))
-    batch_sampler = torch.utils.data.sampler.BatchSampler(sampler, 1, drop_last=False)
+    batch_sampler = torch.utils.data.sampler.BatchSampler(
+                        sampler, 
+                        1 if cfg.LOADER.TEST_SINGLE_IMG else images_per_batch // dist.get_world_size(), 
+                        drop_last=False
+                    )
 
     data_loader = torch.utils.data.DataLoader(
         dataset,
-        num_workers=cfg.LOADER.NUM_WORKERS,
         batch_sampler=batch_sampler,
+        num_workers=cfg.LOADER.NUM_WORKERS,
         collate_fn=trivial_batch_collator,
+        worker_init_fn=worker_init_reset_seed,
     )
     return data_loader
 
