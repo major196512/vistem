@@ -17,11 +17,11 @@ def load_imagenet_annotations(data_root: str, dataset_name: str):
         img_list = os.listdir(img_root)
 
         for file_name in img_list:
-            img_id = int(file_name.split('.')[0].split('_')[1])
+            img_id = int(file_name.split('.')[0].split('_')[-1])
             record = {
                 "file_name": os.path.join(img_root, file_name),
                 "image_id": img_id,
-                "annotations" : class_names.index(anno) if len(anno) else -1,
+                "annotations" : class_names.index(anno),
             }
             dataset_dicts.append(record)
 
