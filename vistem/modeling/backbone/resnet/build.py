@@ -18,12 +18,12 @@ def ResNet(cfg, input_shape):
         in_channels=input_shape.channels,
         out_channels=cfg.BACKBONE.RESNETS.STEM_OUT_CHANNELS,
         norm=norm,
+        stem_bias=cfg.BACKBONE.RESNETS.STEM_BIAS
     )
     
     freeze_at           = cfg.BACKBONE.RESNETS.FREEZE_AT
     out_features        = cfg.BACKBONE.RESNETS.OUT_FEATURES
     depth               = cfg.BACKBONE.RESNETS.DEPTH
-    num_classes         = cfg.BACKBONE.RESNETS.NUM_CLASSES
     res5_dilation       = cfg.BACKBONE.RESNETS.RES5_DILATION
     in_channels         = cfg.BACKBONE.RESNETS.STEM_OUT_CHANNELS
     out_channels        = cfg.BACKBONE.RESNETS.RES2_OUT_CHANNELS
@@ -70,4 +70,4 @@ def ResNet(cfg, input_shape):
 
         stages.append(blocks)
 
-    return ResNetBase(stem, stages, out_features=out_features, num_classes=num_classes).freeze(freeze_at)
+    return ResNetBase(stem, stages, out_features=out_features).freeze(freeze_at)

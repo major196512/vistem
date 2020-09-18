@@ -4,6 +4,7 @@ BACKBONE :
     DEPTH : 50
     OUT_FEATURES : ['res2', 'res3', 'res4', 'res5']
     NORM : 'FrozenBN'
+    STEM_BIAS : False
   FPN :
     NAME : 'ResNetFPN'
     IN_FEATURES : ['res2', 'res3', 'res4', 'res5']
