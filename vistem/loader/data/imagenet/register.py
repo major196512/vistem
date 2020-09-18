@@ -7,8 +7,8 @@ from .meta import get_imagenet_annotations_meta
 __all__ = ['register_all_imagenet']
 
 _PREDEFINED_SPLITS = {
-    'imagenet_train' : ('ILSVRC_2012/train',),
-    'imagenet_val' : ('ILSVRC_2012/val', ),
+    'imagenet_train' : 'ILSVRC_2012/train',
+    'imagenet_val' : 'ILSVRC_2012/val',
 }
 
 def register_imagenet(name, metadata : dict, data_root : str):
@@ -18,7 +18,7 @@ def register_imagenet(name, metadata : dict, data_root : str):
     )
 
 def register_all_imagenet(root="./data"):
-    for key, (data_root) in _PREDEFINED_SPLITS.items():
+    for key, data_root in _PREDEFINED_SPLITS.items():
         register_imagenet(
                 key,
                 get_imagenet_annotations_meta(),

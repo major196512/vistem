@@ -1,1 +1,1 @@
-from .register import register_all_tiny_imagenet
+from .register import register_all_imagenet

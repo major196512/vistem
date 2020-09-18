@@ -1002,9 +1002,9 @@ IMAGENET_CATEGORIES = [
     {'id' : 1000, 'name' : 'n03255030'},
 ]
 
-__all__ = ['get_tiny_annotations_meta']
+__all__ = ['get_imagenet_annotations_meta']
 
-def get_tiny_annotations_meta():
+def get_imagenet_annotations_meta():
     thing_ids = [k["id"] for k in IMAGENET_CATEGORIES]
     category_names = [k["name"] for k in IMAGENET_CATEGORIES]
     assert len(thing_ids) == 1000, len(thing_ids)
