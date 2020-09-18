@@ -22,29 +22,29 @@ class RetinaNet(DefaultMetaArch):
     def __init__(self, cfg):
         super().__init__(cfg)
 
-        self.in_features                = cfg.MODEL.RETINANET.IN_FEATURES
-        self.num_classes                = cfg.MODEL.RETINANET.NUM_CLASSES
+        self.in_features                = cfg.META_ARCH.RETINANET.IN_FEATURES
+        self.num_classes                = cfg.META_ARCH.RETINANET.NUM_CLASSES
 
         # Matcher
-        iou_thres                       = cfg.MODEL.RETINANET.MATCHER.IOU_THRESHOLDS
-        iou_labels                      = cfg.MODEL.RETINANET.MATCHER.IOU_LABELS
-        allow_low_quality_matches       = cfg.MODEL.RETINANET.MATCHER.LOW_QUALITY_MATCHES
+        iou_thres                       = cfg.META_ARCH.RETINANET.MATCHER.IOU_THRESHOLDS
+        iou_labels                      = cfg.META_ARCH.RETINANET.MATCHER.IOU_LABELS
+        allow_low_quality_matches       = cfg.META_ARCH.RETINANET.MATCHER.LOW_QUALITY_MATCHES
         self.matcher                    = Matcher(iou_thres, iou_labels, allow_low_quality_matches=allow_low_quality_matches)
 
         # Loss parameters
-        self.focal_loss_alpha           = cfg.MODEL.RETINANET.LOSS.FOCAL_ALPHA
-        self.focal_loss_gamma           = cfg.MODEL.RETINANET.LOSS.FOCAL_GAMMA
-        self.smooth_l1_loss_beta        = cfg.MODEL.RETINANET.LOSS.SMOOTH_L1_BETA
+        self.focal_loss_alpha           = cfg.META_ARCH.RETINANET.LOSS.FOCAL_ALPHA
+        self.focal_loss_gamma           = cfg.META_ARCH.RETINANET.LOSS.FOCAL_GAMMA
+        self.smooth_l1_loss_beta        = cfg.META_ARCH.RETINANET.LOSS.SMOOTH_L1_BETA
 
-        self.loss_normalizer            = cfg.MODEL.RETINANET.LOSS.NORMALIZER  # initialize with any reasonable #fg that's not too small
-        self.loss_normalizer_momentum   = cfg.MODEL.RETINANET.LOSS.NORMALIZER_MOMENTUM
+        self.loss_normalizer            = cfg.META_ARCH.RETINANET.LOSS.NORMALIZER  # initialize with any reasonable #fg that's not too small
+        self.loss_normalizer_momentum   = cfg.META_ARCH.RETINANET.LOSS.NORMALIZER_MOMENTUM
 
         # Inference parameters
-        bbox_reg_weights                = cfg.MODEL.RETINANET.TEST.BBOX_REG_WEIGHTS
+        bbox_reg_weights                = cfg.META_ARCH.RETINANET.TEST.BBOX_REG_WEIGHTS
         self.box2box_transform          = Box2BoxTransform(weights=bbox_reg_weights)
 
-        self.topk_candidates            = cfg.MODEL.RETINANET.TEST.TOPK_CANDIDATES
-        self.nms_threshold              = cfg.MODEL.RETINANET.TEST.NMS_THRESH
+        self.topk_candidates            = cfg.META_ARCH.RETINANET.TEST.TOPK_CANDIDATES
+        self.nms_threshold              = cfg.META_ARCH.RETINANET.TEST.NMS_THRESH
         
         self.score_threshold            = cfg.TEST.SCORE_THRESH
         self.max_detections_per_image   = cfg.TEST.DETECTIONS_PER_IMAGE
@@ -230,9 +230,9 @@ class RetinaNetHead(nn.Module):
         super().__init__()
         # fmt: off
         in_channels      = input_shape[0].channels
-        num_classes      = cfg.MODEL.RETINANET.NUM_CLASSES
-        num_convs        = cfg.MODEL.RETINANET.HEAD.NUM_CONVS
-        prior_prob       = cfg.MODEL.RETINANET.HEAD.PRIOR_PROB
+        num_classes      = cfg.META_ARCH.RETINANET.NUM_CLASSES
+        num_convs        = cfg.META_ARCH.RETINANET.HEAD.NUM_CONVS
+        prior_prob       = cfg.META_ARCH.RETINANET.HEAD.PRIOR_PROB
         num_anchors      = build_anchor_generator(cfg, input_shape).num_cell_anchors
         # fmt: on
         assert (

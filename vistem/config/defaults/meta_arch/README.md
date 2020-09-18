@@ -1,16 +1,10 @@
 ## Defaults
 
-- `META_ARCHITECTURE`(str) : Choose one of training model architecture.
-
 - `BACKBONE`(str) : The backbone network which is used in META_ARCHITECTURE.
 
 - `PROPOSAL_GENERATOR`(str) : Choose one of proposal generator.
 
-- `WEIGHTS`(str) : The directory of a loaded model if specified.
 
-- `PIXEL_MEAN`(Tuple[float]) : Mean of Gaussian Distribution of pixel colors.
-
-- `PIXEL_STD`(Tuple[float]) : Standard deviation of Gaussian Distribution of pixel colors.
 
 ## ANCHOR_GENERATOR
 

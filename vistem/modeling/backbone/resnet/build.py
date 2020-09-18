@@ -16,21 +16,21 @@ def ResNet(cfg, input_shape):
     norm = cfg.MODEL.RESNETS.NORM
     stem = BasicStem(
         in_channels=input_shape.channels,
-        out_channels=cfg.MODEL.RESNETS.STEM_OUT_CHANNELS,
+        out_channels=cfg.BACKBONE.RESNETS.STEM_OUT_CHANNELS,
         norm=norm,
     )
     
-    freeze_at           = cfg.MODEL.RESNETS.FREEZE_AT
-    out_features        = cfg.MODEL.RESNETS.OUT_FEATURES
-    depth               = cfg.MODEL.RESNETS.DEPTH
-    num_classes         = cfg.MODEL.RESNETS.NUM_CLASSES
-    res5_dilation       = cfg.MODEL.RESNETS.RES5_DILATION
-    in_channels         = cfg.MODEL.RESNETS.STEM_OUT_CHANNELS
-    out_channels        = cfg.MODEL.RESNETS.RES2_OUT_CHANNELS
-    num_groups          = cfg.MODEL.RESNETS.NUM_GROUPS
-    width_per_group     = cfg.MODEL.RESNETS.WIDTH_PER_GROUP
+    freeze_at           = cfg.BACKBONE.RESNETS.FREEZE_AT
+    out_features        = cfg.BACKBONE.RESNETS.OUT_FEATURES
+    depth               = cfg.BACKBONE.RESNETS.DEPTH
+    num_classes         = cfg.BACKBONE.RESNETS.NUM_CLASSES
+    res5_dilation       = cfg.BACKBONE.RESNETS.RES5_DILATION
+    in_channels         = cfg.BACKBONE.RESNETS.STEM_OUT_CHANNELS
+    out_channels        = cfg.BACKBONE.RESNETS.RES2_OUT_CHANNELS
+    num_groups          = cfg.BACKBONE.RESNETS.NUM_GROUPS
+    width_per_group     = cfg.BACKBONE.RESNETS.WIDTH_PER_GROUP
     bottleneck_channels = num_groups * width_per_group
-    stride_in_1x1       = cfg.MODEL.RESNETS.STRIDE_IN_1X1
+    stride_in_1x1       = cfg.BACKBONE.RESNETS.STRIDE_IN_1X1
     
     assert res5_dilation in {1, 2}, f"res5_dilation cannot be {res5_dilation}."
 

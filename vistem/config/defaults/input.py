@@ -3,6 +3,9 @@ from yacs.config import CfgNode as CN
 _INPUT = CN()
 
 _INPUT.FORMAT = 'BGR'
+_INPUT.PIXEL_MEAN = [103.530, 116.280, 123.675]
+_INPUT.PIXEL_STD = [1.0, 1.0, 1.0]
+
 _INPUT.EXIF = True
 _INPUT.TRANSFORM = ['ResizeShortestEdge', 'RandomFlip']
 
