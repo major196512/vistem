@@ -1,0 +1,36 @@
+INPUT: 
+  FORMAT : 'BGR'
+  TRANSFORM : ['ResizeShortestEdge', 'RandomFlip', 'RandomCrop']
+  RESIZE : 
+    ENABLE : True
+    MIN_SIZE_TRAIN_SAMPLING : 'range'
+    MIN_SIZE_TRAIN: (256, 480)
+    MIN_SIZE_TEST: 224
+  CROP :
+    ENABLE : True
+    TYPE : 'absolute'
+    SIZE : [224, 224]
+
+LOADER :
+  TRAIN_DATASET : ('tiny_train', )
+  TEST_DATASET : 'tiny_val'
+  TRAIN_SHUFFLE : True
+  NUM_WORKERS : 0
+  ASPECT_GROUPING : False
+
+SOLVER :
+  MAX_ITER : 640000
+  SCHEDULER :
+    STEPS : (320000, 480000)
+  WARMUP :
+    ITERS : 400
+  CHECKPOINT_PERIOD : 40000
+  CHECKPOINT_KEEP : 0
+
+TEST :
+  EVAL_PERIOD : 40000
+  WRITER_PERIOD : 20
+  VIS_PERIOD : 20
+
+META_ARCH :
+  NUM_CLASSES : 200
