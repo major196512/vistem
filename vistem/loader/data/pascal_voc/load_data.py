@@ -52,7 +52,7 @@ def load_voc_instances(dirname: str, split: str, dataset_name, filter=False):
                 {"category_id": class_names.index(cls), "bbox": bbox, "bbox_mode": BoxMode.XYXY_ABS, 'difficult' : difficult}
             )
 
-        record["annotations"] = objs
+        record["instances"] = objs
         dataset_dicts.append(record)
 
     _logger.info(f"Loaded {len(dataset_dicts)} images in PASCAL VOC from {dirname}_{split}")
@@ -68,9 +68,9 @@ def filter_images_with_difficult(dataset_dicts):
     num_after = 0
 
     for dataset in dataset_dicts:
-        num_before += len(dataset['annotations'])
-        dataset['annotations'] = [ann for ann in dataset['annotations'] if ann.get("difficult", 0) == 0]
-        num_after += len(dataset['annotations'])
+        num_before += len(dataset['instances'])
+        dataset['instances'] = [ann for ann in dataset['instances'] if ann.get("difficult", 0) == 0]
+        num_after += len(dataset['instances'])
     
     # All Images have annotations after filtering
     _logger.info(f"Removed {num_before - num_after} annotations with difficult. {num_after} annotations left.")
