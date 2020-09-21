@@ -35,7 +35,7 @@ class EfficientNet(DefaultMetaArch):
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout(dropout_prob)
-        self.linear = Conv2d(feature_shapes.channels, self.num_classes, 1, 1)
+        self.linear = nn.Linear(feature_shapes.channels, self.num_classes)
 
         # Sec 5.1 in "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour":
         # "The 1000-way fully-connected layer is initialized by
@@ -49,7 +49,7 @@ class EfficientNet(DefaultMetaArch):
         features = self.backbone(images.tensor)
         features = self.avgpool(features[self.in_features])
         features = self.dropout(features)
-        features = self.linear(features).reshape(features.shape[0], -1)
+        features = self.linear(features.reshape(features.shape[0], -1))
         features = torch.softmax(features, dim=1)
 
         if self.training:
