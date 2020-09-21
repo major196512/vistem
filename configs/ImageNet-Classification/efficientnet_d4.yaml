@@ -1,7 +1,7 @@
 BASE_CFG : './configs/BaseConfig/efficientnet.yaml'
 DATA_CFG : './configs/DataConfig/ImageNet-Classification.yaml'
 
-WEIGHTS : './pretrained_weights/efficient-b4-6ed6700e'
+WEIGHTS : './pretrained_weights/efficientnet-b4-6ed6700e.pth'
 OUTPUT_DIR : './output_imagenet/efficientnet_B4'
 
 
