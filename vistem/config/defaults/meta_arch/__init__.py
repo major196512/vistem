@@ -1,6 +1,8 @@
 from yacs.config import CfgNode as CN
 
 from .resnet import _RESNET
+from .efficientnet import _EFFICIENTNET
+
 from .retinanet import _RETINANET
 
 from .rpn import _RPN
@@ -12,6 +14,8 @@ _META_ARCH.PROPOSAL_GENERATOR = 'RPN'
 _META_ARCH.NUM_CLASSES = 80
 
 _META_ARCH.RESNET = _RESNET
+_META_ARCH.EFFICIENTNET = _EFFICIENTNET
+
 _META_ARCH.RETINANET = _RETINANET
 
 _META_ARCH.ROI = _ROI

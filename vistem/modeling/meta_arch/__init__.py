@@ -4,6 +4,7 @@ META_ARCH_REGISTRY = Registry("META_ARCH")
 from .default import DefaultMetaArch
 
 from .resnet import ResNet
+from .efficientnet import EfficientNet
 
 from .retinanet import RetinaNet
 from .rpn import ProposalNetwork
