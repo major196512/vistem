@@ -98,8 +98,9 @@ class MBConvBlock(BlockBase):
         out = self.SEblock(out) if hasattr(self, 'SEblock') else out
         out = self.project_conv(out)
 
-        if self.is_skip:
+        if self.is_skip and self.stride == 1 and self.in_channels == self.out_channels:
             if self.training : out = drop_connect(out, p=self.drop_connect_prob)
+            import pdb; pdb.set_trace()
             out += x
 
         return out
