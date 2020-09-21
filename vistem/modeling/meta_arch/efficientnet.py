@@ -50,7 +50,6 @@ class EfficientNet(DefaultMetaArch):
         features = self.avgpool(features[self.in_features])
         features = self.dropout(features)
         features = self.linear(features.reshape(features.shape[0], -1))
-        features = torch.softmax(features, dim=1)
 
         if self.training:
             pass
