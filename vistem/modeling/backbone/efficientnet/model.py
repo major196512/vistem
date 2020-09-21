@@ -12,79 +12,93 @@ from vistem.structures import ShapeSpec
 __all__ = ['EfficientNetBase']
 
 class EfficientNetBase(Backbone):
-    def __init__(self, stem, stages, num_classes=0, dropout_prob=0.5, out_features=None):
-        super().__init__()
-        self.stage1 = stem
-        self._out_feature_strides = {"stage1": self.stage1.stride}
-        self._out_feature_channels = {"stage1": self.stage1.out_channels}
+    def __init__(self, stem, stages, head, out_features=None):
+        super(EfficientNetBase, self).__init__()
 
-        current_stride = self.stage1.stride
-        self.stages_and_names = []
+        self.stem = stem
+        current_stride = self.stem.stride
+
+        self._stage_strides = {"stage1": stem.stride}
+        self._stage_channels = {"stage1": stem.out_channels}
+
+        self.blocks = []
+        self.stage_to_block = dict()
+        self.block_to_stage = dict()
+
         for i, blocks in enumerate(stages, start=2):
             for block in blocks:
                 assert isinstance(block, BlockBase), block
                 curr_channels = block.out_channels
                 current_stride *= block.stride
 
-            stage = nn.Sequential(*blocks)
-            name = f"stage{str(i)}"
-            self.add_module(name, stage)
-            self.stages_and_names.append((stage, name))
+                block_name = f"block{str(len(self.blocks))}"
+                self.add_module(block_name, block)
+                self.blocks.append(block)
 
-            self._out_feature_strides[name] = current_stride
-            self._out_feature_channels[name] = blocks[-1].out_channels
+            stage_name = f'stage{str(i)}'
+            block_idx = len(self.blocks) - 1
 
-        if num_classes > 0:
-            self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-            self.dropout = nn.Dropout(dropout_prob)
-            self.linear = nn.Linear(curr_channels, num_classes)
+            self.stage_to_block[stage_name] = block_idx
+            self.block_to_stage[block_idx] = stage_name
+            
+            self._stage_strides[stage_name] = current_stride
+            self._stage_channels[stage_name] = blocks[-1].out_channels
 
-            # Sec 5.1 in "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour":
-            # "The 1000-way fully-connected layer is initialized by
-            # drawing weights from a zero-mean Gaussian with standard deviation of 0.01."
-            # nn.init.normal_(self.linear.weight, stddev=0.01)
-            name = "linear"
+        self.head = head
+        current_stride *= head.stride
 
-        if out_features is None : out_features = [name]
+        stage_name = 'stage9'
+        self._stage_strides[stage_name] = current_stride
+        self._stage_channels[stage_name] = head.out_channels
+
+        if out_features is None : out_features = [stage_name]
         self._out_features = out_features
         assert len(self._out_features)
 
-        children = [x[0] for x in self.named_children()]
         for out_feature in self._out_features:
-            assert out_feature in children, f"Available children: {', '.join(children)}"
+            assert out_feature in self._stage_strides.keys(), f"Available stages: {', '.join(self._stage_strides.keys())}"
+
+        self._out_feature_strides = self._stage_strides
+        self._out_feature_channels = self._stage_channels
 
     def forward(self, x):
         outputs = {}
-        x = self.stage1(x)
-        if "stage1" in self._out_features:
-            outputs["stage1"] = x
+        x = self.stem(x)
+        if 'stage1' in self._out_features :
+            outputs['stage1'] = x
 
-        for stage, name in self.stages_and_names:
-            x = stage(x)
-            if name in self._out_features:
-                outputs[name] = x
+        for idx, block in enumerate(self.blocks):
+            x = block(x)
+            if idx in self.block_to_stage.keys():
+                stage_name = self.block_to_stage[idx]
+                outputs[stage_name] = x
 
-        if hasattr(self, 'avgpool'):
-            x = self.dropout(self.avgpool(x))
-            x = self.linear(x.reshape(x.shape[0], -1))
-            if "linear" in self._out_features:
-                outputs["linear"] = x
+        x = self.head(x)
+        if 'stage9' in self._out_features :
+            outputs['stage9'] = x
 
         return outputs
 
     def freeze(self, freeze_at=0):
-        if freeze_at >= 1:
-            self.stage1.freeze()
-        for idx, (stage, _) in enumerate(self.stages_and_names, start=2):
-            if freeze_at >= idx:
-                for block in stage.children():
-                    block.freeze()
+        if freeze_at == 0 : return self
+        self.stem.freeze()
+
+        freeze_stage_idx = min(8, freeze_at)
+        freeze_stage_name = f'stage{str(freeze_stage_idx)}'
+        freeze_block_idx = self.stage_to_block[freeze_stage_name]
+
+        for idx, block in enumerate(self.blocks):
+            if freeze_block_idx >= idx:
+                block.freeze()
+
+        if freeze_at >= 9 : self.head.freeze()
         return self
 
     def output_shape(self):
         return {
             name: ShapeSpec(
-                channels=self._out_feature_channels[name], stride=self._out_feature_strides[name]
+                channels=self._stage_channels[name], stride=self._stage_strides[name]
             )
             for name in self._out_features
         }
+        
