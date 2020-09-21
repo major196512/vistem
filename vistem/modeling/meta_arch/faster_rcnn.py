@@ -26,7 +26,7 @@ class FasterRCNN(DefaultMetaArch):
         self.roi_heads = build_roi_head(cfg, self.backbone.output_shape())
 
     def forward(self, batched_inputs):
-        images, gt_instances, proposals = self.preprocess_image(batched_inputs)
+        images, _, gt_instances, proposals = self.preprocess_image(batched_inputs)
 
         features = self.backbone(images.tensor)
         if proposals is None :
