@@ -62,7 +62,7 @@ class MBConvBlock(BlockBase):
             stride=stride,
             padding=int((kernel_size-1)/2) * dilation,
             bias=False,
-            groups=num_groups,
+            groups=in_channels * expand_dim,
             dilation=dilation,
             norm=get_norm(norm, in_channels * expand_dim),
             activation=MemoryEfficientSwish() if memory_efficient else Swish(),
