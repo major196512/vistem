@@ -1,16 +1,18 @@
 BASE_CFG : './configs/BaseConfig/retinanet.yaml'
 DATA_CFG : './configs/DataConfig/COCO-Detection.yaml'
+
+WEIGHTS : './pretrained_weights/R-50.pkl'
 OUTPUT_DIR : './output_coco/retinanet_R50_NASFPN'
 
-MODEL:
-  WEIGHTS : './pretrained_weights/R-50.pkl'
-  BACKBONE : 'NAS_FPN'
-  
+BACKBONE : 
+  NAME : 'NAS_FPN'
   RESNETS :
     ENABLE : True
   FPN : 
     ENABLE : True
   NAS_FPN :
     ENABLE : True
+
+META_ARCH : 
   RETINANET :
     ENABLE : True

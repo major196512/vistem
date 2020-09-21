@@ -68,8 +68,8 @@ def build_test_loader(cfg):
 
     data_loader = torch.utils.data.DataLoader(
         dataset,
-        num_workers=cfg.LOADER.NUM_WORKERS,
         batch_sampler=batch_sampler,
+        num_workers=cfg.LOADER.NUM_WORKERS,
         collate_fn=trivial_batch_collator,
     )
     return data_loader

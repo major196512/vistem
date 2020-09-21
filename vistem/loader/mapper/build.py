@@ -3,14 +3,13 @@ import copy
 import numpy as np
 from PIL import Image, ImageOps
 
-from vistem.utils.logger import setup_logger
-from vistem.structures import Boxes, BoxMode, Instances
+from .instances import instance_mapper
+from .annotations import annotation_mapper
 
-from .transforms import build_transform_gen, apply_transform
+from vistem.utils.logger import setup_logger
+from vistem.loader.transforms import build_transform_gen, apply_transform
 
 __all__ = ["DatasetMapper"]
-
-
 
 class DatasetMapper:
     def __init__(self, cfg, is_train=True):
@@ -39,18 +38,16 @@ class DatasetMapper:
         image_shape = image.shape[:2]
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
 
+        if 'annotations' in dataset_dict:
+            dataset_dict = annotation_mapper(dataset_dict)
+            
         if not self.is_train:
-            dataset_dict.pop("annotations", None)
+            # dataset_dict.pop("annotations", None)
+            dataset_dict.pop("instances", None)
             return dataset_dict
 
-        if "annotations" in dataset_dict:
-            annos = [
-                self.transform_instance_annotations(obj, transforms)
-                for obj in dataset_dict.pop("annotations")
-                if obj.get("iscrowd", 0) == 0
-            ]
-            instances = self.annotations_to_instances(annos, image_shape)
-            dataset_dict["instances"] = self.filter_empty_instances(instances)
+        if "instances" in dataset_dict:
+            dataset_dict = instance_mapper(dataset_dict, transforms, image_shape)
 
 
         return dataset_dict
@@ -88,32 +85,4 @@ class DatasetMapper:
             dataset_dict["height"] = image.shape[0]
 
 
-    def transform_instance_annotations(self, annotation, transforms):
-        bbox = BoxMode.convert(annotation["bbox"], annotation["bbox_mode"], BoxMode.XYXY_ABS)
-        annotation["bbox"] = transforms.apply_box([bbox])[0]
-        annotation["bbox_mode"] = BoxMode.XYXY_ABS
 
-        return annotation
-
-    def annotations_to_instances(self, annos, image_size):
-        boxes = [BoxMode.convert(obj["bbox"], obj["bbox_mode"], BoxMode.XYXY_ABS) for obj in annos]
-        target = Instances(image_size)
-        boxes = target.gt_boxes = Boxes(boxes)
-        boxes.clip(image_size)
-
-        classes = [obj["category_id"] for obj in annos]
-        classes = torch.tensor(classes, dtype=torch.int64)
-        target.gt_classes = classes
-
-        return target
-
-    def filter_empty_instances(self, instances, box_threshold=1e-5):
-        r = []
-        r.append(instances.gt_boxes.nonempty(threshold=box_threshold))
-
-        if not r:
-            return instances
-        m = r[0]
-        for x in r[1:]:
-            m = m & x
-        return instances[m]

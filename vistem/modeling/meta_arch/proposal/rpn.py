@@ -22,42 +22,42 @@ class RPN(DefaultMetaArch):
         super().__init__(cfg)
 
         # Default
-        self.in_features                = cfg.MODEL.RPN.IN_FEATURES
+        self.in_features                = cfg.META_ARCH.RPN.IN_FEATURES
 
         # Matcher
-        iou_thres                       = cfg.MODEL.RPN.MATCHER.IOU_THRESHOLDS
-        iou_labels                      = cfg.MODEL.RPN.MATCHER.IOU_LABELS
-        allow_low_quality_matches       = cfg.MODEL.RPN.MATCHER.LOW_QUALITY_MATCHES
+        iou_thres                       = cfg.META_ARCH.RPN.MATCHER.IOU_THRESHOLDS
+        iou_labels                      = cfg.META_ARCH.RPN.MATCHER.IOU_LABELS
+        allow_low_quality_matches       = cfg.META_ARCH.RPN.MATCHER.LOW_QUALITY_MATCHES
         self.matcher                    = Matcher(iou_thres, iou_labels, allow_low_quality_matches=allow_low_quality_matches)
 
         # Sampling
-        self.batch_size_per_image       = cfg.MODEL.RPN.SAMPLING.BATCH_SIZE_PER_IMAGE
-        self.positive_fraction          = cfg.MODEL.RPN.SAMPLING.POSITIVE_FRACTION
+        self.batch_size_per_image       = cfg.META_ARCH.RPN.SAMPLING.BATCH_SIZE_PER_IMAGE
+        self.positive_fraction          = cfg.META_ARCH.RPN.SAMPLING.POSITIVE_FRACTION
         
         # Loss Parameters
-        self.loc_loss_type              = cfg.MODEL.RPN.LOSS.LOC_TYPE
-        self.smooth_l1_loss_beta        = cfg.MODEL.RPN.LOSS.SMOOTH_L1_BETA
+        self.loc_loss_type              = cfg.META_ARCH.RPN.LOSS.LOC_TYPE
+        self.smooth_l1_loss_beta        = cfg.META_ARCH.RPN.LOSS.SMOOTH_L1_BETA
         self.loss_weight = {
-            'loss_rpn_cls' : cfg.MODEL.RPN.LOSS.CLS_WEIGHT,
-            'loss_rpn_loc' : cfg.MODEL.RPN.LOSS.LOC_WEIGHT
+            'loss_rpn_cls' : cfg.META_ARCH.RPN.LOSS.CLS_WEIGHT,
+            'loss_rpn_loc' : cfg.META_ARCH.RPN.LOSS.LOC_WEIGHT
         }
 
         # Inference parameters
-        bbox_reg_weights                = cfg.MODEL.RPN.TEST.BBOX_REG_WEIGHTS
+        bbox_reg_weights                = cfg.META_ARCH.RPN.TEST.BBOX_REG_WEIGHTS
         self.box2box_transform          = Box2BoxTransform(weights=bbox_reg_weights)
 
-        self.pre_nms_topk               = {True : cfg.MODEL.RPN.TRAIN.PRE_NMS_TOPK, False : cfg.MODEL.RPN.TEST.PRE_NMS_TOPK}
-        self.post_nms_topk              = {True : cfg.MODEL.RPN.TRAIN.POST_NMS_TOPK, False : cfg.MODEL.RPN.TEST.POST_NMS_TOPK}
+        self.pre_nms_topk               = {True : cfg.META_ARCH.RPN.TRAIN.PRE_NMS_TOPK, False : cfg.META_ARCH.RPN.TEST.PRE_NMS_TOPK}
+        self.post_nms_topk              = {True : cfg.META_ARCH.RPN.TRAIN.POST_NMS_TOPK, False : cfg.META_ARCH.RPN.TEST.POST_NMS_TOPK}
 
-        self.nms_threshold              = cfg.MODEL.RPN.TEST.NMS_THRESH
-        self.min_box_size               = cfg.MODEL.RPN.TEST.MIN_SIZE
+        self.nms_threshold              = cfg.META_ARCH.RPN.TEST.NMS_THRESH
+        self.min_box_size               = cfg.META_ARCH.RPN.TEST.MIN_SIZE
 
         # RPN Head
         self.anchor_generator = build_anchor_generator(cfg, [input_shape[f] for f in self.in_features])
-        if cfg.MODEL.RPN.HEAD_NAME == 'StandardRPNHead' :
+        if cfg.META_ARCH.RPN.HEAD_NAME == 'StandardRPNHead' :
             self.rpn_head = StandardRPNHead(cfg, [input_shape[f] for f in self.in_features])
         else:
-            raise ValueError(f"Invalid rpn head class '{cfg.MODEL.RPN.HEAD_NAME}'")
+            raise ValueError(f"Invalid rpn head class '{cfg.META_ARCH.RPN.HEAD_NAME}'")
 
     def forward(self, images, features, gt_instances):
         features = [features[f] for f in self.in_features]

@@ -47,7 +47,7 @@ class Trainer(HookTrainer):
         if dist.get_world_size() > 1:
             self.model = DistributedDataParallel(self.model, device_ids=[dist.get_local_rank()], broadcast_buffers=False)
 
-        self.weight_path = cfg.MODEL.WEIGHTS
+        self.weight_path = cfg.WEIGHTS
         self.checkpointer = Checkpointer(
             self.model,
             cfg.OUTPUT_DIR,

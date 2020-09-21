@@ -60,7 +60,7 @@ def load_coco_json(json_file, image_root, dataset_name, filter=True, extra_annot
             obj["category_id"] = id_map[obj["category_id"]]
             objs.append(obj)
             
-        record["annotations"] = objs
+        record["instances"] = objs
         dataset_dicts.append(record)
 
     if filter : dataset_dicts = filter_images_with_only_crowd_annotations(dataset_dicts)
@@ -78,7 +78,7 @@ def filter_images_with_only_crowd_annotations(dataset_dicts):
                 return True
         return False
 
-    dataset_dicts = [x for x in dataset_dicts if valid(x["annotations"])]
+    dataset_dicts = [x for x in dataset_dicts if valid(x["instances"])]
     num_after = len(dataset_dicts)
     _logger.info(f"Removed {num_before - num_after} images with no usable annotations. {num_after} images left.")
     return dataset_dicts

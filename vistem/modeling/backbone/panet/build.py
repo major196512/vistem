@@ -11,14 +11,14 @@ __all__ = ['PANet']
 def PANet(cfg, input_shape: ShapeSpec):
     fpn = FPN(cfg, input_shape)
 
-    in_features = cfg.MODEL.PANET.IN_FEATURES
+    in_features = cfg.BACKBONE.PANET.IN_FEATURES
     for in_feat in in_features:
         assert in_feat in fpn.out_features, f"'{in_feat}' is not in FPN({fpn.out_features})"
 
     backbone = PANetBase(
         fpn=fpn,
         in_features=in_features,
-        out_channels=cfg.MODEL.PANET.OUT_CHANNELS,
+        out_channels=cfg.BACKBONE.PANET.OUT_CHANNELS,
 
     )
 

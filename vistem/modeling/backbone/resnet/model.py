@@ -12,7 +12,7 @@ from vistem.structures import ShapeSpec
 __all__ = ['ResNetBase']
 
 class ResNetBase(Backbone):
-    def __init__(self, stem, stages, num_classes=0, out_features=None):
+    def __init__(self, stem, stages, out_features=None):
         super(ResNetBase, self).__init__()
         self.stem = stem
         current_stride = self.stem.stride
@@ -34,16 +34,6 @@ class ResNetBase(Backbone):
             self._out_feature_strides[name] = current_stride
             self._out_feature_channels[name] = blocks[-1].out_channels
 
-        if num_classes > 0:
-            self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-            self.linear = nn.Linear(curr_channels, num_classes)
-
-            # Sec 5.1 in "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour":
-            # "The 1000-way fully-connected layer is initialized by
-            # drawing weights from a zero-mean Gaussian with standard deviation of 0.01."
-            nn.init.normal_(self.linear.weight, stddev=0.01)
-            name = "linear"
-
         if out_features is None:
             out_features = [name]
         self._out_features = out_features
@@ -64,12 +54,6 @@ class ResNetBase(Backbone):
             if name in self._out_features:
                 outputs[name] = x
 
-        if hasattr(self, 'avgpool'):
-            x = self.avgpool(x)
-            x = self.linear(x.reshape(x.shape[0], -1))
-            if "linear" in self._out_features:
-                outputs["linear"] = x
-
         return outputs
 
     def freeze(self, freeze_at=0):
@@ -82,7 +66,6 @@ class ResNetBase(Backbone):
         return self
 
     def output_shape(self):
-        print(self._out_features)
         return {
             name: ShapeSpec(
                 channels=self._out_feature_channels[name], stride=self._out_feature_strides[name]

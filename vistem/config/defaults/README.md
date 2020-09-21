@@ -1,4 +1,9 @@
 ## Defaults
+
+- `META_ARCHITECTURE`(str) : Choose one of training model architecture.
+
+- `WEIGHTS`(str) : The directory of a loaded model if specified.
+
 - `SEED`(int) : Random Seed for pytorch, numpy and ramdom library. It is assigned randomly if SEED < 0.
 
 - `DEVICE`(str) : Set 'cuda' or 'cpu'.
@@ -7,6 +12,10 @@
 
 ## INPUT
 - `FORMAT`(str) : Input image format {'BGR', 'RGB', 'L'}.
+
+- `PIXEL_MEAN`(Tuple[float]) : Mean of Gaussian Distribution of pixel colors.
+
+- `PIXEL_STD`(Tuple[float]) : Standard deviation of Gaussian Distribution of pixel colors.
 
 - `EXIF`(bool) : Whether preprocessing EXIF transpose or not.
 
