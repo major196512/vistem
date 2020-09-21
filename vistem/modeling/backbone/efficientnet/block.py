@@ -7,7 +7,7 @@ from vistem.modeling.layers import Swish, MemoryEfficientSwish
 from vistem.modeling.layers.norm.frozen_bn import FrozenBatchNorm2d
 from vistem.utils import weight_init
 
-__all__ = ['MBConvBlock', 'HeadBlock']
+__all__ = ['BlockBase', 'MBConvBlock']
 
 class BlockBase(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
@@ -103,30 +103,3 @@ class MBConvBlock(BlockBase):
             out += x
 
         return out
-
-class HeadBlock(BlockBase):
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        kernel_size,
-        *,
-        stride=1,
-        norm="BN",
-        memory_efficient=True,
-    ):
-        super().__init__(in_channels, out_channels, stride)
-
-        self.block = Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=int((kernel_size-1)/2),
-            bias=False,
-            norm=get_norm(norm, out_channels),
-            activation=MemoryEfficientSwish() if memory_efficient else Swish(),
-        )
-
-    def forward(self, x):
-        return self.block(x)
