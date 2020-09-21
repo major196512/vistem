@@ -19,7 +19,7 @@ class SqueezeExcitation2d(nn.Module):
             hidden_channels,
             kernel_size=1,
             stride=1,
-            bias=False,
+            bias=True,
             activation=MemoryEfficientSwish() if memory_efficient else Swish(),
         )
 
@@ -28,7 +28,7 @@ class SqueezeExcitation2d(nn.Module):
             out_channels,
             kernel_size=1,
             stride=1,
-            bias=False,
+            bias=True,
             activation=MemoryEfficientSwish() if memory_efficient else Swish(),
         )
 
