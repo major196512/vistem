@@ -23,7 +23,7 @@ class RetinaNet(DefaultMetaArch):
         super().__init__(cfg)
 
         self.in_features                = cfg.META_ARCH.RETINANET.IN_FEATURES
-        self.num_classes                = cfg.META_ARCH.RETINANET.NUM_CLASSES
+        self.num_classes                = cfg.META_ARCH.NUM_CLASSES
 
         # Matcher
         iou_thres                       = cfg.META_ARCH.RETINANET.MATCHER.IOU_THRESHOLDS
