@@ -1,0 +1,16 @@
+BASE_CFG : './configs/BaseConfig/efficientnet.yaml'
+DATA_CFG : './configs/DataConfig/ImageNet-Classification.yaml'
+
+WEIGHTS : './pretrained_weights/efficient-b1-f1951068'
+OUTPUT_DIR : './output_imagenet/efficientnet_B1'
+
+
+BACKBONE :
+  EFFICIENTNET : 
+    DEPTH :
+      DEPTH_FACTOR : 1.1
+      WIDTH_FACTOR : 1.0
+
+META_ARCH : 
+  EFFICIENTNET :
+    DROPOUT_PROB : 0.2
