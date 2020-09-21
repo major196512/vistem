@@ -1,78 +1,22 @@
 ## Defaults
 
-- `BACKBONE`(str) : The backbone network which is used in META_ARCHITECTURE.
+- `NAME`(str) : Choose one of training model architecture.
 
 - `PROPOSAL_GENERATOR`(str) : Choose one of proposal generator.
 
-
-
-## ANCHOR_GENERATOR
-
-- `NAME`(str) : Choose a module for anchor generator.
-
-- `SIZES`(List[List[int]]) : Anchor size for each feature levels.
-
-- `ASPECT_RATIOS`(List[List[float]]) : Anchor ratio of heights and widths for each feature levels.
-
-## FPN
-
-- `ENABLE`
-
-- `NAME`(str) : Choose a module for FPN.
-  
-- `IN_FEATURES`(List[str]) : Input levels of features from bottom-up pathway network.
-
-- `OUT_CHANNELS`(int) : Dimension of each output feature maps.
-
-- `NORM`(str) : Choose one of [normized functions](../../../modeling/layers/norm/__init__.py).
-
-- `FUSE_TYPE`(str) : Fuse feature map from bottom-up pathway and top-down pathway model by 'sum' or 'avg'.
-
-## NAS_FPN
-
-- `ENABLE`
-  
-- `CELL_INPUTS`(List[List[str]]) : Input levels of features for each NAS_FPN cells.
-
-- `CELL_OUTPUTS`(List[str]) : Output levels of features for each NAS_FPN cells.
-
-- `CELL_OPS`(List[str]) : Choose one of binary operations for each cells.
-
-- `NAS_OUTPUTS`(List[str]) : Final output features.
+- `NUM_CLASSES`(int) : The number of output classes.
 
 ## RESNETS
 
 - `ENABLE`
 
-- `FREEZE_AT`(int) : Index of layers to freeze layers.
-
-- `DEPTH`(int) : Select the number of layers{18, 34, 50, 101, 152}.
-
-- `NUM_CLASSES`(int) : The number of classes. If NUM_CLASSES = 0, they only return the set of feature maps in each layer, not for Image Classification.
-
-- `OUT_FEATURES`(List[str]) : The list of output layer names.
-
-- `NORM`(str) : Choose one of [normized functions](../../../modeling/layers/norm/__init__.py).
-
-- `STEM_OUT_CHANNELS`(int) : Dimension of feature from a stem layer.
-
-- `RES2_OUT_CHANNELS`(int) : Dimension of each output feature maps after stem layer.
-
-- `RES5_DILATION`(int) : The dilation value in 3x3 conv layer of 'Res5' layer. It must be in {1, 2}.
-
-- `NUM_GROUPS`(int) : The number of groups in 3x3 conv layers.
-
-- `WIDTH_PER_GROUP`(int) : Dimension of each groups in 3x3 conv layers(So WIDTH_PER_GROUP * NUM_GROUPS = BLOCK_CHANNEL).
-
-- `STRIDE_IN_1X1`(bool) : Whether stride in 1x1 conv layer or 3x3 conv.
-
+- `IN_FEATURES`(List[str]) : Input levels of features from backbone network.
+- 
 ## RETINANET
 
 - `ENABLE`
 
 - `IN_FEATURES`(List[str]) : Input levels of features from backbone network.
-
-- `NUM_CLASSES`(int) : The number of classes.
 
 - `MATCHER` :
 
@@ -115,8 +59,6 @@
 - `NAME`(str) : Choose one of ROI Heads.
 
 - `IN_FEATURES`(List[str]) : Input levels of features from backbone network.
-
-- `NUM_CLASSES`(int) : The number of classes.
 
 - `MATCHER` :
 

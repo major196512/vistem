@@ -1,7 +1,5 @@
 ## Defaults
 
-- `META_ARCHITECTURE`(str) : Choose one of training model architecture.
-
 - `WEIGHTS`(str) : The directory of a loaded model if specified.
 
 - `SEED`(int) : Random Seed for pytorch, numpy and ramdom library. It is assigned randomly if SEED < 0.
@@ -9,6 +7,22 @@
 - `DEVICE`(str) : Set 'cuda' or 'cpu'.
 
 - `OUTPUT_DIR`(str) : The directory to save training results.
+
+## BACKBONE
+
+- See [here](./backbone) for more informations
+
+## META_ARCH
+
+- See [here](./meta_arch) for more informations
+
+## ANCHOR_GENERATOR
+
+- `NAME`(str) : Choose a module for anchor generator.
+
+- `SIZES`(List[List[int]]) : Anchor size for each feature levels.
+
+- `ASPECT_RATIOS`(List[List[float]]) : Anchor ratio of heights and widths for each feature levels.
 
 ## INPUT
 - `FORMAT`(str) : Input image format {'BGR', 'RGB', 'L'}.
@@ -34,14 +48,19 @@
   - `MAX_SIZE_TEST`(int) : Maximum size of resized images when testing.
 
 - `FLIP` : 
-- 
+  
+  - `ENABLE`
+  - 
   - `PROB`(float) : Probability of flip images.
 
-<!--_CROP = CN()
-INPUT.CROP.ENABLE = False
-# _INPUT.CROP.TYPE = 'relative_range'
-# _INPUT.CROP.SIZE = [0.9, 0.9]-->
+- `CROP` :
+  
+  - `ENABLE`
 
+  - `TYPE` : Select one of {'absolute', 'absolote range', 'relative', 'relative range'}
+
+  - `SIZE` : Crop size of height and width.
+ 
 ## LOADER
 
 - `TRAIN_DATASET`(Tuple[str]) : The list of training datasets.
@@ -53,10 +72,6 @@ INPUT.CROP.ENABLE = False
 - `TRAIN_SHUFFLE`(bool) : Whether shuffling in training datasets or not.
 
 - `ASPECT_GROUPING`(bool) : Whether grouping by ratio of height and width or not.
-
-## MODEL
-
-- See [here](./model) for more informations
 
 ## SOLVER
 

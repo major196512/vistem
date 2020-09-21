@@ -63,7 +63,7 @@ class RetinaNet(DefaultMetaArch):
 
 
     def forward(self, batched_inputs):
-        images, gt_instances, _ = self.preprocess_image(batched_inputs)
+        images, _, gt_instances, _ = self.preprocess_image(batched_inputs)
 
         features = self.backbone(images.tensor)
         features = [features[f] for f in self.in_features]

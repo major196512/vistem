@@ -26,7 +26,7 @@ class StandardROIHeads(DefaultMetaArch):
         super().__init__(cfg)
 
         self.in_features                    = cfg.META_ARCH.ROI.IN_FEATURES
-        self.num_classes                    = cfg.META_ARCH.ROI.NUM_CLASSES
+        self.num_classes                    = cfg.META_ARCH.NUM_CLASSES
         in_channels                         = [input_shape[f].channels for f in self.in_features]
 
         assert len(set(in_channels)) == 1, in_channels
@@ -319,7 +319,7 @@ class BoxHead(nn.Module):
 
         super().__init__()
 
-        num_classes     = cfg.META_ARCH.ROI.NUM_CLASSES
+        num_classes     = cfg.META_ARCH.NUM_CLASSES
 
         num_conv        = cfg.META_ARCH.ROI.BOX_HEAD.NUM_CONV
         conv_dim        = cfg.META_ARCH.ROI.BOX_HEAD.CONV_DIM
