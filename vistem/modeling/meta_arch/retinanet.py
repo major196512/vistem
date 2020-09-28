@@ -230,7 +230,7 @@ class RetinaNetHead(nn.Module):
         super().__init__()
         # fmt: off
         in_channels      = input_shape[0].channels
-        num_classes      = cfg.META_ARCH.RETINANET.NUM_CLASSES
+        num_classes      = cfg.META_ARCH.NUM_CLASSES
         num_convs        = cfg.META_ARCH.RETINANET.HEAD.NUM_CONVS
         prior_prob       = cfg.META_ARCH.RETINANET.HEAD.PRIOR_PROB
         num_anchors      = build_anchor_generator(cfg, input_shape).num_cell_anchors
