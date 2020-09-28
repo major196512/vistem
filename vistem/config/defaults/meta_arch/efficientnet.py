@@ -1,0 +1,7 @@
+from yacs.config import CfgNode as CN
+
+_EFFICIENTNET = CN()
+_EFFICIENTNET.ENABLE = False
+
+_EFFICIENTNET.IN_FEATURES = 'stage9'
+_EFFICIENTNET.DROPOUT_PROB = 0.2

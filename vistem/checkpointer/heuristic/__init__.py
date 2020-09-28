@@ -1,1 +1,1 @@
-from .detectron_caffe import align_and_update_state_dicts
+from .align import align_and_update_state_dicts
