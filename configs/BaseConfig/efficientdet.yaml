@@ -1,0 +1,20 @@
+BACKBONE:
+  NAME : 'BiFPN'
+  EFFICIENTNET : 
+    ENABLE : True
+    DEPTH :
+      DEPTH_FACTOR : 1.0
+      WIDTH_FACTOR : 1.0
+  BIFPN:
+    ENABLE : True
+    BOTTOM_UP : 'EfficientNet'
+    IN_FEATURES : ['stage5', 'stage7', 'stage9']
+    OUT_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']
+    FUSE_TYPE : 'fast_norm'
+    OUT_CHANNELS : 64
+    NUM_LAYERS : 3
+
+META_ARCH:
+  NAME : 'EfficientDet'
+  EFFICIENTDET :
+    ENABLE : TRUE
