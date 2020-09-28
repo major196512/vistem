@@ -4,6 +4,15 @@ DATA_CFG : './configs/DataConfig/VOC-Detection.yaml'
 WEIGHTS : './pretrained_weights/efficientnet-b0-355c32eb.pth'
 OUTPUT_DIR : './output_voc/efficientdet_D0'
 
+INPUT: 
+  RESIZE : 
+    MIN_SIZE_TRAIN: (512, )
+    MIN_SIZE_TEST: 512
+  CROP :
+    ENABLE : True
+    TYPE : 'absolute'
+    SIZE : [512, 512]
+
 BACKBONE:
   EFFICIENTNET : 
     DEPTH :

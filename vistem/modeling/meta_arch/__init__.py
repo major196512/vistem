@@ -7,8 +7,11 @@ from .resnet import ResNet
 from .efficientnet import EfficientNet
 
 from .retinanet import RetinaNet
+
 from .rpn import ProposalNetwork
 from .faster_rcnn import FasterRCNN
+
+from .efficientdet import EfficientDet
 
 def build_model(cfg):
     model = cfg.META_ARCH.NAME

@@ -18,3 +18,17 @@ META_ARCH:
   NAME : 'EfficientDet'
   EFFICIENTDET :
     ENABLE : TRUE
+    IN_FEATURES : ['p3', 'p4', 'p5', 'p6', 'p7']
+    MATCHER :
+      IOU_THRESHOLDS : [0.4, 0.5]
+      IOU_LABELS : [0, -1, 1]
+      LOW_QUALITY_MATCHES : True
+    LOSS :
+      FOCAL_GAMMA : 1.5
+      FOCAL_ALPHA : 0.25
+      SMOOTH_L1_BETA : 0.1
+      NORMALIZER : 100.0
+      NORMALIZER_MOMENTUM : 0.9
+    HEAD :
+      NUM_CONVS : 3
+      PRIOR_PROB : 0.01
