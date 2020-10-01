@@ -1,6 +1,7 @@
 from yacs.config import CfgNode as CN
 
 _PLAN = CN()
+_PLAN.ENABLE = False
 _PLAN.OUT_CHANNELS = 256
 _PLAN.NUM_HEADS = 4
 _PLAN.NUM_CONVS = 1

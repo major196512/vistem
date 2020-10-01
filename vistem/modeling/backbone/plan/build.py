@@ -10,13 +10,13 @@ __all__ = ['PLAN']
 def PLAN(cfg, input_shape: ShapeSpec):
     fpn = FPN(cfg, input_shape)
 
-    in_channels         = cfg.MODEL.FPN.OUT_CHANNELS
-    out_channels        = cfg.MODEL.PLAN.OUT_CHANNELS
+    in_channels         = cfg.BACKBONE.FPN.OUT_CHANNELS
+    out_channels        = cfg.BACKBONE.PLAN.OUT_CHANNELS
 
-    num_heads           = cfg.MODEL.PLAN.NUM_HEADS
-    num_convs           = cfg.MODEL.PLAN.NUM_CONVS
-    num_weights         = cfg.MODEL.PLAN.NUM_WEIGHTS
-    erf                 = cfg.MODEL.PLAN.ERF
+    num_heads           = cfg.BACKBONE.PLAN.NUM_HEADS
+    num_convs           = cfg.BACKBONE.PLAN.NUM_CONVS
+    num_weights         = cfg.BACKBONE.PLAN.NUM_WEIGHTS
+    erf                 = cfg.BACKBONE.PLAN.ERF
 
     assert in_channels % num_heads == 0
 
