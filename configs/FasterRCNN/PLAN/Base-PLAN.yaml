@@ -1,0 +1,18 @@
+BASE_CFG : './configs/FasterRCNN/Base.yaml'
+
+MODEL :
+  META_ARCHITECTURE : 'FasterRCNN'
+  BACKBONE : 'PLAN'
+
+  RESNETS : 
+    DEPTH : 50
+    OUT_FEATURES : ['res2', 'res3', 'res4', 'res5']
+    NORM : 'FrozenBN'
+  FPN :
+    NAME : 'ResNetFPN'
+    IN_FEATURES : ['res2', 'res3', 'res4', 'res5']
+  PLAN :
+    NUM_HEADS : 4
+    NUM_CONVS : 1
+    NUM_WEIGHTS : 1
+    ERF : 3
