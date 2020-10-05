@@ -4,6 +4,8 @@ import torch.nn.functional as F
 
 from vistem.modeling.layers import Conv2d, Swish, MemoryEfficientSwish
 
+__all__ = ['SqueezeExcitation2d']
+
 class SqueezeExcitation2d(nn.Module):
     def __init__(
         self,

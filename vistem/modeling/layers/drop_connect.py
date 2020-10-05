@@ -1,5 +1,7 @@
 import torch
 
+__all__ = ['drop_connect']
+
 def drop_connect(inputs, p):
     """Drop connect.
     Args:
