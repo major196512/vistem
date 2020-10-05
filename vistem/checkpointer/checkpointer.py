@@ -60,8 +60,8 @@ class Checkpointer:
             if filename.split('/')[-1].startswith('efficientnet'):
                 loaded = {'model' : loaded, '__author__' : 'lukemelas', 'matching_heuristics' : True} # https://github.com/lukemelas/EfficientNet-PyTorch
 
-            else : 
-                loaded = {"model": loaded, "__author__" : 'vistem'}
+        else : 
+            assert loaded['__author__'] == 'vistem'
 
         return loaded
 
@@ -115,6 +115,7 @@ class Checkpointer:
 
     def save(self, name: str, **kwargs: Dict[str, str]) -> None:
         data = {}
+        data['__author__'] = 'vistem'
         data["model"] = self.model.state_dict()
         for key, obj in self.checkpointables.items():
             data[key] = obj.state_dict()
