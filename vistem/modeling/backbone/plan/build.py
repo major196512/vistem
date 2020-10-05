@@ -13,10 +13,12 @@ def PLAN(cfg, input_shape: ShapeSpec):
 
     out_channels        = cfg.BACKBONE.PLAN.OUT_CHANNELS
     plan_cfg            = cfg.BACKBONE.PLAN.PLAN_CFG
+    plan_mode           = cfg.BACKBONE.PLAN.PLAN_MODE
 
     backbone = PLANBase(
         pyramid=pyramid,
         out_channels=out_channels,
+        mode=plan_mode,
         plan_cfg=plan_cfg,
     )
     return backbone

@@ -6,15 +6,12 @@ import math
 from vistem.modeling.backbone import Backbone
 from vistem.structures import ShapeSpec
 
-# from .attn_top_down import AttnTopDown
-# from .attn_bottom_up import AttnBottomUp
-# from .attn_concat import AttnFuse
-from .plan_attention import PLANAttention
+from .mode import plan_mode
 
 __all__ = ['PLANBase']
 
 class PLANBase(Backbone):
-    def __init__(self, pyramid, out_channels, plan_cfg):
+    def __init__(self, pyramid, out_channels, mode, plan_cfg):
         super().__init__()
 
         in_features                 = pyramid.out_features
@@ -36,7 +33,7 @@ class PLANBase(Backbone):
             assert self._out_feature_channels[top_feat] == self._out_feature_channels[bot_feat]
             out_channels = self._out_feature_channels[bot_feat]
             
-            attn = PLANAttention(top_feat, bot_feat, out_channels, plan_cfg)
+            attn = plan_mode(mode, top_feat, bot_feat, out_channels, plan_cfg)
             self.plan_top_down.append(attn)
             self.add_module(f'TopDown_{top_feat}_{bot_feat}', attn)
 

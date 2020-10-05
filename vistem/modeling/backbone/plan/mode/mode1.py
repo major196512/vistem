@@ -5,11 +5,13 @@ import torch.nn.functional as F
 import math
 import re
 
+from . import PLANDecode, PLAN_REGISTRY
 from vistem.modeling.layers import Conv2d, unfold_2d, fold_2d
 
-__all__ = ['PLANAttention']
+__all__ = ['PLAN_mode1']
 
-class PLANAttention(nn.Module):
+@PLAN_REGISTRY.register()
+class PLAN_mode1(PLANDecode):
     def __init__(self, top_feat, bot_feat, out_channels, plan_cfg):
         super().__init__()
 
@@ -34,12 +36,6 @@ class PLANAttention(nn.Module):
             if isinstance(layer, Conv2d):
                 torch.nn.init.normal_(layer.weight, mean=0, std=0.01)
                 if layer.bias is not None : torch.nn.init.constant_(layer.bias, 0)
-
-    def decode_cfg(self, cfg):
-        self.num_heads = int(re.compile('h[0-9]+').findall(cfg)[0][1:])
-        self.key_dim = int(re.compile('k[0-9]+').findall(cfg)[0][1:])
-        self.value_dim = int(re.compile('v[0-9]+').findall(cfg)[0][1:])
-        self.erf = int(re.compile('e[0-9]+').findall(cfg)[0][1:])
 
     def forward(self, x):
         top_feat, bot_feat = x
@@ -70,7 +66,8 @@ class PLANAttention(nn.Module):
             value = torch.cat([top_V, bot_V], dim=1)
 
             weight = (key.unsqueeze(2) * query.unsqueeze(1)).sum(dim=3) / math.sqrt(self.key_dim) # (B, 10, 10, H, W)
-            out = (weight.unsqueeze(dim=3) * value.unsqueeze(dim=2)).sum(dim=2) # (B, 10, C, H, W)
+            weight = weight.softmax(dim=1)
+            out = (weight.unsqueeze(dim=3) * value.unsqueeze(dim=2)).sum(dim=1) # (B, 10, C, H, W)
 
             top_ret = out[:, 0, :, :, :]
             bot_ret = out[:, 1:, :, :, :]
