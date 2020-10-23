@@ -31,6 +31,9 @@ class Transform(metaclass=ABCMeta):
         trans_boxes = np.concatenate((minxy, maxxy), axis=1)
         return trans_boxes
 
+    def apply_polygons(self, polygons : List[np.ndarray]) -> List[np.ndarray]:
+        return [self.apply_coords(p) for p in polygons]
+
 class TransformGen(metaclass=ABCMeta):
     def _init(self, params=None):
         if params:

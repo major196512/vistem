@@ -41,7 +41,7 @@ def load_coco_json(json_file, image_root, dataset_name, filter=True, extra_annot
 
     dataset_dicts = []
 
-    ann_keys = ["iscrowd", "bbox", "category_id"] + (extra_annotation_keys or [])
+    ann_keys = ["iscrowd", "bbox", "segmentation", "category_id"] + (extra_annotation_keys or [])
 
     for (img_dict, anno_dict_list) in imgs_anns:
         record = {}
@@ -57,7 +57,7 @@ def load_coco_json(json_file, image_root, dataset_name, filter=True, extra_annot
 
             obj = {key: anno[key] for key in ann_keys if key in anno}
             obj["bbox_mode"] = BoxMode.XYWH_ABS
-            obj["category_id"] = id_map[obj["category_id"]]
+            if 'category_id' in obj : obj["category_id"] = id_map[obj["category_id"]]
             objs.append(obj)
             
         record["instances"] = objs
