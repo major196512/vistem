@@ -11,14 +11,16 @@ def PLAN(cfg, input_shape: ShapeSpec):
     pyramid = cfg.BACKBONE.PLAN.PYRAMID_NAME
     pyramid = BACKBONE_REGISTRY.get(pyramid)(cfg, input_shape)
 
-    out_channels        = cfg.BACKBONE.PLAN.OUT_CHANNELS
     plan_cfg            = cfg.BACKBONE.PLAN.PLAN_CFG
-    plan_mode           = cfg.BACKBONE.PLAN.PLAN_MODE
+    interlayer_mode     = cfg.BACKBONE.PLAN.INTERLAYER_MODE
+    fuse_mode           = cfg.BACKBONE.PLAN.FUSE_MODE
+    repeat              = cfg.BACKBONE.PLAN.REPEAT
 
     backbone = PLANBase(
         pyramid=pyramid,
-        out_channels=out_channels,
-        mode=plan_mode,
+        interlayer_mode=interlayer_mode,
+        fuse_mode=fuse_mode,
+        repeat=repeat,
         plan_cfg=plan_cfg,
     )
     return backbone
