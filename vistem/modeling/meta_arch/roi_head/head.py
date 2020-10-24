@@ -110,13 +110,14 @@ class StandardROIHeads(DefaultMetaArch):
         scores, proposal_deltas = self.box_head(box_features)
         del box_features
 
+        pred_mask = None
         if self.seg_on:
-            mask_features = self.mask_pooler(features, [x.proposal_boxes for x in proposals])
-            mask_features = self.mask_head(mask_features)
+            pred_mask = self.mask_pooler(features, [x.proposal_boxes for x in proposals])
+            pred_mask = self.mask_head(pred_mask)
 
         if self.training:
             losses = self.losses_box(scores, proposal_deltas, proposals)
-            if self.seg_on : losses.update(self.losses())
+            if self.seg_on : losses.update(self.losses_mask(pred_mask, proposals))
 
             # proposals is modified in-place below, so losses must be computed first.
             # if self.train_on_pred_boxes:
@@ -127,12 +128,12 @@ class StandardROIHeads(DefaultMetaArch):
             # return proposals, losses
 
             if self.vis_period > 0:
-                results = self.inference(scores, proposal_deltas, proposals)
+                results = self.inference(scores, proposal_deltas, pred_mask, proposals)
                 return results, losses
             else : return None, losses
 
         else:
-            results = self.inference(scores, proposal_deltas, proposals)
+            results = self.inference(scores, proposal_deltas, pred_mask, proposals)
             # pred_instances = self.forward_with_given_boxes(features, pred_instances)
 
             return results, {}
@@ -221,9 +222,20 @@ class StandardROIHeads(DefaultMetaArch):
 
         pred = pred[torch.arange(num_masks), gt_classes]
 
+        incorrect = (pred > 0) != gt_masks_bool
+        accuracy = 1 - (incorrect.sum().item() / max(incorrect.numel(), 1.0))
+        num_positive = gt_masks_bool.sum().item()
+        false_positive = (incorrect & ~gt_masks_bool).sum().item() / max(gt_masks_bool.numel() - num_positive, 1.0)
+        false_negative = (incorrect & gt_masks_bool).sum().item() / max(num_positive, 1.0)
+
+        storage = get_event_storage()
+        storage.put_scalar('mask_rcnn/accuracy', accuracy)
+        storage.put_scalar('mask_rcnn/false_positive', false_positive)
+        storage.put_scalar('mask_rcnn/false_negative', false_negative)
+
         mask_loss = F.binary_cross_entropy_with_logits(pred, gt_masks, reduction='mean')
 
-        return mask_loss
+        return {'loss_mask' : mask_loss}
 
     @torch.no_grad()
     def get_ground_truth(
@@ -302,6 +314,7 @@ class StandardROIHeads(DefaultMetaArch):
         self,
         pred_scores : torch.Tensor, 
         pred_deltas : torch.Tensor, 
+        pred_mask : torch.Tensor, 
         proposals : List[Instances]
     ) -> List[Instances]:
 
@@ -317,10 +330,18 @@ class StandardROIHeads(DefaultMetaArch):
         pred_scores_per_image = F.softmax(pred_scores, dim=-1)
         pred_scores_per_image = pred_scores_per_image.split(num_inst_per_image)
 
+        if pred_mask is None:
+            pred_masks_per_image = [None] * num_inst_per_image
+        else:
+            pred_masks_per_image = pred_mask.split(num_inst_per_image)
+
         image_sizes = [x.image_size for x in proposals]
         for img_idx, image_size in enumerate(image_sizes):
             results_per_image = self.inference_single_image(
-                pred_scores_per_image[img_idx], pred_deltas_per_image[img_idx], image_size
+                pred_scores_per_image[img_idx], 
+                pred_deltas_per_image[img_idx], 
+                pred_masks_per_image[img_idx],
+                image_size
             )
             results.append(results_per_image)
 
@@ -330,6 +351,7 @@ class StandardROIHeads(DefaultMetaArch):
         self,
         box_cls: torch.Tensor,
         box_delta: torch.Tensor,
+        pred_mask : Union[torch.Tensor, None],
         image_size: List[Tuple[int, int]]
     ) -> Instances:
     
@@ -365,7 +387,18 @@ class StandardROIHeads(DefaultMetaArch):
         result.pred_boxes = Boxes(box_delta[keep])
         result.pred_scores = box_cls[keep]
         result.pred_classes = classes_idxs[keep]
+
+        if pred_mask is not None:
+            result.pred_masks = pred_mask[classes_idxs[keep]].unsqueeze(dim=0).sigmoid()
+
         return result
+
+    def infereance_mask_single_image(
+        self,
+        pred_mask : torch.Tensor,
+        pred_instance : Instances,
+    ) -> Instances :
+        pass
 
 class BoxHead(nn.Module):
     def __init__(
