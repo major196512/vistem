@@ -1,4 +1,4 @@
-from .ops import Conv2d, Linear
+from .ops import Conv2d, ConvTranspose2d, Linear
 from .norm import get_norm
 from .nms import batched_nms
 from .drop_connect import drop_connect
