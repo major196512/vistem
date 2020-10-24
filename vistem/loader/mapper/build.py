@@ -18,6 +18,8 @@ class DatasetMapper:
         self.img_format = cfg.INPUT.FORMAT
         self.exif_transpose = cfg.INPUT.EXIF
 
+        self.seg_on = cfg.INPUT.SEG_ON
+
         self.tfm_gens = build_transform_gen(cfg, is_train)
         _logger.info(f"TransformGens(Training={is_train}) : {str(self.tfm_gens)}")
 
@@ -47,7 +49,7 @@ class DatasetMapper:
             return dataset_dict
 
         if "instances" in dataset_dict:
-            dataset_dict = instance_mapper(dataset_dict, transforms, image_shape)
+            dataset_dict = instance_mapper(dataset_dict, transforms, image_shape, seg_on=self.seg_on)
 
 
         return dataset_dict

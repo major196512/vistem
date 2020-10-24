@@ -5,21 +5,18 @@ from vistem.structures import Boxes, BoxMode, Instances, PolygonMasks
 
 __all__ = ['instance_mapper']
 
-def instance_mapper(dataset_dict : dict, transforms, image_size):
-    has_box = ('bbox' in dataset_dict['instances'][0])
-    has_seg = ('segmentation' in dataset_dict['instances'][0])
-
+def instance_mapper(dataset_dict : dict, transforms, image_size, seg_on=False):
     boxes = []
     masks = []
     classes = []
     for obj in dataset_dict.pop('instances'):
         if obj.get('iscrowd', 0) == 1 : continue
 
-        if has_box:
-            bbox = BoxMode.convert(obj["bbox"], obj["bbox_mode"], BoxMode.XYXY_ABS)
-            boxes.append(transforms.apply_box([bbox])[0])
+        bbox = BoxMode.convert(obj["bbox"], obj["bbox_mode"], BoxMode.XYXY_ABS)
+        boxes.append(transforms.apply_box([bbox])[0])
 
-        if has_seg:
+        if seg_on:
+            assert 'segmentation' in obj
             seg = obj['segmentation']
             if isinstance(seg, list):
                 polygons = [np.asarray(p).reshape(-1, 2) for p in seg]
@@ -31,11 +28,10 @@ def instance_mapper(dataset_dict : dict, transforms, image_size):
 
     instance = Instances(image_size)
 
-    if has_box:
-        boxes = instance.gt_boxes = Boxes(boxes)
-        boxes.clip(image_size)
+    boxes = instance.gt_boxes = Boxes(boxes)
+    boxes.clip(image_size)
 
-    if has_seg:
+    if seg_on:
         instance.gt_mask = PolygonMasks(masks)
         instance.gt_boxes = instance.gt_mask.get_bounding_boxes()
 
