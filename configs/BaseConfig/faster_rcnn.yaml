@@ -27,7 +27,7 @@ META_ARCH :
       IOU_THRESHOLDS : [0.5]
       IOU_LABELS : [0, 1]
       LOW_QUALITY_MATCHES : False
-    BOX_POOLING:
+    POOLING:
       TYPE : 'ROIAlignV2'
       RESOLUTION : 7
     BOX_HEAD : 
