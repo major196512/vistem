@@ -17,6 +17,8 @@ class COCOInstanceEvaluator:
 
     def _tasks_from_config(self, cfg):
         tasks = ("bbox",)
+        if cfg.INPUT.SEG_ON : tasks += ('segm')
+
         return tasks
 
     def _instances_to_coco_json(self, input, output):
