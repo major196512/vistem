@@ -30,11 +30,16 @@ META_ARCH :
       IOU_THRESHOLDS : [0.5]
       IOU_LABELS : [0, 1]
       LOW_QUALITY_MATCHES : False
-    POOLING:
+    BOX_POOLING:
       TYPE : 'ROIAlignV2'
       RESOLUTION : 7
     BOX_HEAD : 
       NUM_FC : 2
+    MASK_POOLING:
+      TYPE : 'ROIAlignV2'
+      RESOLUTION : 14
+    MASK_HEAD:
+      NUM_CONV: 4
   RPN :
     HEAD_NAME : 'StandardRPNHead'
     IN_FEATURES : ["p2", "p3", "p4", "p5", "p6"]
@@ -56,5 +61,5 @@ ANCHOR_GENERATOR:
 
 SOLVER :
   OPTIMIZER : 'SGD'
-  IMG_PER_BATCH : 16
+  IMG_PER_BATCH : 2
   BASE_LR : 0.02

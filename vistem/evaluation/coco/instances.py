@@ -17,7 +17,7 @@ class COCOInstanceEvaluator:
 
     def _tasks_from_config(self, cfg):
         tasks = ("bbox",)
-        if cfg.INPUT.SEG_ON : tasks += ('segm')
+        if cfg.INPUT.SEG_ON : tasks += ('segm', )
 
         return tasks
 

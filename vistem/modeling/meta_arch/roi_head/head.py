@@ -46,12 +46,10 @@ class StandardROIHeads(DefaultMetaArch):
         self.batch_size_per_image           = cfg.META_ARCH.ROI.SAMPLING.BATCH_SIZE_PER_IMAGE
         self.positive_fraction              = cfg.META_ARCH.ROI.SAMPLING.POSITIVE_FRACTION
 
-        # Pooling Parameters and Module
-        pooler_type                     = cfg.META_ARCH.ROI.POOLING.TYPE
-        pooler_resolution               = cfg.META_ARCH.ROI.POOLING.RESOLUTION
-        pooler_sampling_ratio           = cfg.META_ARCH.ROI.POOLING.SAMPLING_RATIO
-
         # ROI Box Head
+        pooler_type                     = cfg.META_ARCH.ROI.BOX_POOLING.TYPE
+        pooler_resolution               = cfg.META_ARCH.ROI.BOX_POOLING.RESOLUTION
+        pooler_sampling_ratio           = cfg.META_ARCH.ROI.BOX_POOLING.SAMPLING_RATIO
         self.box_pooler = ROIPooler(
             output_size=pooler_resolution,
             scales=tuple(1.0 / input_shape[k].stride for k in self.in_features),
@@ -64,6 +62,9 @@ class StandardROIHeads(DefaultMetaArch):
         # self.train_on_pred_boxes            = cfg.MODEL.ROI_HEAD.TRAIN_ON_PRED_BOXES
 
         if self.seg_on:
+            pooler_type                     = cfg.META_ARCH.ROI.MASK_POOLING.TYPE
+            pooler_resolution               = cfg.META_ARCH.ROI.MASK_POOLING.RESOLUTION
+            pooler_sampling_ratio           = cfg.META_ARCH.ROI.MASK_POOLING.SAMPLING_RATIO
             self.mask_pooler = ROIPooler(
                 output_size=pooler_resolution,
                 scales=tuple(1.0 / input_shape[k].stride for k in self.in_features),
@@ -196,12 +197,12 @@ class StandardROIHeads(DefaultMetaArch):
         pred : torch.Tensor,
         proposals : List[Instances],
     ):
-        num_masks = pred.size(0)
         mask_side_len = pred.size(2)
         assert pred.size(2) == pred.size(3), "Mask prediction must be square!"
 
         gt_masks = []
         gt_classes = []
+
         for proposal_per_image in proposals:
             if len(proposal_per_image) == 0 : continue
             
@@ -213,16 +214,21 @@ class StandardROIHeads(DefaultMetaArch):
             gt_classes.append(gt_class)
             gt_masks.append(gt_mask)
 
-        if len(gt_masks) == 0 : return pred.sum() * 0
-
         gt_classes = torch.cat(gt_classes, dim=0)
         gt_masks = torch.cat(gt_masks, dim=0)
         gt_masks = gt_masks.to(dtype=torch.float32)
+
+        foreground_idxs = torch.nonzero((gt_classes >= 0) & (gt_classes != self.num_classes), as_tuple=True)[0]
+        num_foreground = foreground_idxs.numel()
+        gt_classes = gt_classes[foreground_idxs]
+        gt_masks = gt_masks[foreground_idxs]
+        pred = pred[foreground_idxs]
+
+        if len(gt_masks) == 0 : return pred.sum() * 0
+        pred = pred[torch.arange(num_foreground), gt_classes]
+
         gt_masks_bool = (gt_masks > 0.5)
-
-        pred = pred[torch.arange(num_masks), gt_classes]
-
-        incorrect = (pred > 0) != gt_masks_bool
+        incorrect = (pred > 0.0) != gt_masks_bool
         accuracy = 1 - (incorrect.sum().item() / max(incorrect.numel(), 1.0))
         num_positive = gt_masks_bool.sum().item()
         false_positive = (incorrect & ~gt_masks_bool).sum().item() / max(gt_masks_bool.numel() - num_positive, 1.0)
@@ -331,7 +337,7 @@ class StandardROIHeads(DefaultMetaArch):
         pred_scores_per_image = pred_scores_per_image.split(num_inst_per_image)
 
         if pred_mask is None:
-            pred_masks_per_image = [None] * num_inst_per_image
+            pred_masks_per_image = [None] * len(pred_scores_per_image)
         else:
             pred_masks_per_image = pred_mask.split(num_inst_per_image)
 
@@ -389,7 +395,7 @@ class StandardROIHeads(DefaultMetaArch):
         result.pred_classes = classes_idxs[keep]
 
         if pred_mask is not None:
-            result.pred_masks = pred_mask[classes_idxs[keep]].unsqueeze(dim=0).sigmoid()
+            result.pred_masks = pred_mask[keep_idxs][keep].unsqueeze(dim=1).sigmoid()
 
         return result
 
