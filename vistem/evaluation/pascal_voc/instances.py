@@ -61,7 +61,7 @@ class VOCInstanceEvaluator:
         with tempfile.TemporaryDirectory(prefix="pascal_voc_eval_") as dirname:
             res_file_template = os.path.join(dirname, "{}.txt")
 
-            aps = defaultdict(list)  # iou -> ap per class
+            aps = defaultdict(float)  # iou -> ap per class
             for cls_id, cls_name in enumerate(self._category):
                 pred_cls = predictions.get(cls_id, None)
                 if pred_cls is None : continue
@@ -78,19 +78,20 @@ class VOCInstanceEvaluator:
 
                         f.write(f'{line}\n')
 
-                for thresh in range(50, 100, 5):
-                    rec, prec, ap = voc_eval(
-                        res_file_template,
-                        self._anno_file_template,
-                        self._image_set_path,
-                        cls_name,
-                        ovthresh=thresh / 100.0,
-                        use_07_metric=self._is_2007,
-                    )
-                    aps[thresh].append(ap * 100)
+                thresh = 50
+                rec, prec, ap = voc_eval(
+                    res_file_template,
+                    self._anno_file_template,
+                    self._image_set_path,
+                    cls_name,
+                    ovthresh=thresh / 100.0,
+                    use_07_metric=self._is_2007,
+                )
+                aps[cls_name] = ap * 100
         
-        mAP = {iou: np.mean(x) for iou, x in aps.items()}
-        results["bbox"] = {"AP": np.mean(list(mAP.values())), "AP50": mAP[50], "AP75": mAP[75]}
+        mAP = np.mean(list(aps.values()))
+        aps['mAP'] = mAP
+        results["bbox"] = aps
         
         table = create_small_table(results['bbox'])
         self._logger.info(f"\n{table}")

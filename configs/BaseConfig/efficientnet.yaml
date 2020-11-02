@@ -1,0 +1,22 @@
+BACKBONE :
+  NAME : 'EfficientNet'
+  EFFICIENTNET : 
+    ENABLE : True
+    FREEZE_AT : 0
+    OUT_FEATURES : ['stage3', 'stage4', 'stage5', 'stage7', 'stage9']
+    NORM : 'BN'
+    DEPTH :
+      DEPTH_FACTOR : 1.0
+      WIDTH_FACTOR : 1.0
+
+META_ARCH : 
+  NAME : 'EfficientNet'
+  EFFICIENTNET :
+    ENABLE : True
+    IN_FEATURES : 'stage9'
+    DROPOUT_PROB : 0.2
+
+SOLVER :
+  OPTIMIZER : 'SGD'
+  IMG_PER_BATCH : 256
+  BASE_LR : 0.1

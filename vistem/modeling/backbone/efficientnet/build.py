@@ -4,7 +4,9 @@ from vistem.modeling.backbone import BACKBONE_REGISTRY
 from vistem.modeling.layers import Conv2d, get_norm, Swish, MemoryEfficientSwish
 
 from .stem import BasicStem
-from .block import MBConvBlock, HeadBlock
+from .head import HeadBlock
+from .block import MBConvBlock
+
 from .model import EfficientNetBase
 
 __all__ = ['EfficientNet']
@@ -18,48 +20,43 @@ def make_stage(block_class, num_blocks, first_stride, **kwargs):
     
 @BACKBONE_REGISTRY.register()
 def EfficientNet(cfg, input_shape, memory_efficient=True):
-    # norm = cfg.MODEL.RESNETS.NORM
-    norm = 'BN'
-    pi = 1
-    se_ratio = 0.25
-    drop_connect_prob = 0.2
-
-    freeze_at           = 0
-    out_features        = ['stage3', 'stage4', 'stage5', 'stage7', 'stage9']
-    num_classes         = cfg.MODEL.RESNETS.NUM_CLASSES
+    freeze_at               = cfg.BACKBONE.EFFICIENTNET.FREEZE_AT
+    out_features            = cfg.BACKBONE.EFFICIENTNET.OUT_FEATURES
+    num_classes             = cfg.META_ARCH.NUM_CLASSES
+    norm                    = cfg.BACKBONE.EFFICIENTNET.NORM
     
-    depth_factor = [1.0, 1.1, 1.2, 1.4, 1.8, 2.2, 2.6, 3.1]
-    width_factor = [1.0, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0]
+    depth_factor            = cfg.BACKBONE.EFFICIENTNET.DEPTH.DEPTH_FACTOR
+    width_factor            = cfg.BACKBONE.EFFICIENTNET.DEPTH.WIDTH_FACTOR
+    se_ratio                = cfg.BACKBONE.EFFICIENTNET.DEPTH.SE_RATIO
+    drop_connect_prob       = cfg.BACKBONE.EFFICIENTNET.DEPTH.DROP_CONNECT_PROB
 
-    B0_layers_per_stage = [1, 1, 2, 2, 3, 3, 4, 1, 1] # B0
-    num_layers_per_stage = [int(math.ceil(depth_factor[pi] * n)) for n in B0_layers_per_stage]
-    num_layers_per_stage[0] = 1
-    num_layers_per_stage[-1] = 1
+    B0_layers_per_stage     = cfg.BACKBONE.EFFICIENTNET.STAGE_PARAM.NUM_LAYERS_PER_STAGE
+    B0_channels_per_stage   = cfg.BACKBONE.EFFICIENTNET.STAGE_PARAM.OUT_CHANNELS_PER_STAGE
 
-    B0_channels_per_stage = [32, 16, 24, 40, 80, 112, 192, 320, 1280] # B0
-    num_channels_per_stage = [int(8 * round(width_factor[pi] * n / 8)) for n in B0_channels_per_stage]
-
-    kernel_sizes = [3, 3, 3, 5, 3, 5, 5, 3, 1]
-    expand_dims = [0, 1, 6, 6, 6, 6, 6, 6, 0]
-    first_strides = [2, 1, 2, 2, 2, 1, 2, 1, 1]
+    kernel_sizes            = cfg.BACKBONE.EFFICIENTNET.STAGE_PARAM.KERNEL_SIZE_PER_STAGE
+    expand_dims             = cfg.BACKBONE.EFFICIENTNET.STAGE_PARAM.EXPAND_DIMS_PER_STAGE
+    first_strides           = cfg.BACKBONE.EFFICIENTNET.STAGE_PARAM.STRIDES_PER_STAGE
 
     stem = BasicStem(
         in_channels=input_shape.channels,
-        out_channels=num_channels_per_stage[0],
+        out_channels=int(8 * round(width_factor * 4)),
         norm=norm,
     )
 
+    num_layers_per_stage = [int(math.ceil(depth_factor * n)) for n in B0_layers_per_stage]
+    num_channels_per_stage = [int(8 * round(width_factor * n / 8)) for n in B0_channels_per_stage]
+
     out_stage_idx = {
-        "stage1": 1, "stage2": 2, "stage3": 3, "stage4": 4, "stage5": 5, 
-        "stage6": 6, "stage7": 7, "stage8": 8, "stage9": 9, "linear": 9, 
+        "stage1": 0, "stage2": 1, "stage3": 2, "stage4": 3, "stage5": 4, 
+        "stage6": 5, "stage7": 6, "stage8": 7, "stage9": 7, 
     }
     out_stage_idx = [out_stage_idx[f] for f in out_features]
     max_stage_idx = max(out_stage_idx)
 
     stages = []
-    for idx in range(1, max_stage_idx):
+    in_channels = stem.out_channels
+    for idx in range(max_stage_idx):
         num_blocks = num_layers_per_stage[idx]
-        in_channels = num_channels_per_stage[idx-1]
         out_channels = num_channels_per_stage[idx]
 
         stage_kargs = {
@@ -74,18 +71,18 @@ def EfficientNet(cfg, input_shape, memory_efficient=True):
             "norm": norm,
         }
 
-        if idx < 8:
-            stage_kargs["block_class"] = MBConvBlock
-
-        else:
-            stage_kargs["block_class"] = HeadBlock
-            stage_kargs.pop('expand_dim')
-            stage_kargs.pop('se_ratio')
-            stage_kargs.pop('drop_connect_prob')
-            
+        stage_kargs["block_class"] = MBConvBlock
         blocks = make_stage(**stage_kargs)
-
         stages.append(blocks)
 
-    dropout_probs = [0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.5]
-    return EfficientNetBase(stem, stages, out_features=out_features, num_classes=num_classes, dropout_prob=dropout_probs[pi]).freeze(freeze_at)
+        in_channels = out_channels
+
+    if 'stage9' in out_features:
+        stage_kargs = {
+            "in_channels": in_channels,
+            "out_channels": int(8 * round(width_factor * 160)),
+            "norm": norm,
+        }
+        head = HeadBlock(**stage_kargs)
+
+    return EfficientNetBase(stem, stages, head, out_features=out_features).freeze(freeze_at)

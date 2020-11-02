@@ -23,7 +23,7 @@ class RetinaNet(DefaultMetaArch):
         super().__init__(cfg)
 
         self.in_features                = cfg.META_ARCH.RETINANET.IN_FEATURES
-        self.num_classes                = cfg.META_ARCH.RETINANET.NUM_CLASSES
+        self.num_classes                = cfg.META_ARCH.NUM_CLASSES
 
         # Matcher
         iou_thres                       = cfg.META_ARCH.RETINANET.MATCHER.IOU_THRESHOLDS
@@ -230,7 +230,7 @@ class RetinaNetHead(nn.Module):
         super().__init__()
         # fmt: off
         in_channels      = input_shape[0].channels
-        num_classes      = cfg.META_ARCH.RETINANET.NUM_CLASSES
+        num_classes      = cfg.META_ARCH.NUM_CLASSES
         num_convs        = cfg.META_ARCH.RETINANET.HEAD.NUM_CONVS
         prior_prob       = cfg.META_ARCH.RETINANET.HEAD.PRIOR_PROB
         num_anchors      = build_anchor_generator(cfg, input_shape).num_cell_anchors

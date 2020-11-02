@@ -38,7 +38,7 @@ class _ColorfulFormatter(logging.Formatter):
 def setup_logger(name, all_rank=False, output=None):
     caller = find_caller()['caller']
     logger = logging.getLogger(caller)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     logger.propagate = False
 
     if all_rank and get_world_size() > 1:
