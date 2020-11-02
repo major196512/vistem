@@ -1,0 +1,12 @@
+BASE_CFG : './configs/VOC-Detection/faster_R50_PANet.yaml'
+OUTPUT_DIR : './output_voc/plan/faster_R50_PANet'
+
+BACKBONE :
+  NAME : 'PLAN'
+  PLAN :
+    ENABLE : True
+    PYRAMID_NAME : 'PANet'
+    INTERLAYER_MODE : 'Default'
+    FUSE_MODE : 'SENet'
+    REPEAT : 1
+    PLAN_CFG : 'h4k64v64e5'

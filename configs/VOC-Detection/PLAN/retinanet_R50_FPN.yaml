@@ -1,0 +1,12 @@
+BASE_CFG : './configs/VOC-Detection/retinanet_R50_FPN.yaml'
+OUTPUT_DIR : './output_voc/plan/retinanet_R50_FPN'
+
+BACKBONE :
+  NAME : 'PLAN'
+  PLAN :
+    ENABLE : True
+    PYRAMID_NAME : 'FPN'
+    INTERLAYER_MODE : 'Default'
+    FUSE_MODE : 'SENet'
+    REPEAT : 1
+    PLAN_CFG : 'h4k64v64e5'
