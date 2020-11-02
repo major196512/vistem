@@ -1,4 +1,5 @@
 from collections import defaultdict
+import os
 import wandb
 
 from .trainer import HookBase
@@ -6,7 +7,10 @@ from .trainer import HookBase
 class WandbWriter(HookBase):
     def __init__(self, cfg, model):
         self._period = cfg.TEST.WRITER_PERIOD
+        self._save_period = cfg.SOLVER.CHECKPOINT_PERIOD
+        self._output_dir = cfg.OUTPUT_DIR
         self._last_write = -1
+
         wandb.init(project="vistem")
         wandb.run.name = cfg.OUTPUT_DIR
         wandb.config.update(cfg)
@@ -19,6 +23,9 @@ class WandbWriter(HookBase):
         next_iter = self.trainer.iter + 1
         if next_iter % self._period == 0:
             self.write()
+
+        if next_iter % self._save_period == 0:
+            wandb.save(os.path.join(self._output_dir, f'model_{int(self.trainer.iter):07d}.pth'))
 
     def after_train(self):
         pass
