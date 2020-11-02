@@ -59,7 +59,7 @@ class Trainer(HookTrainer):
 
         self.evaluator = build_evaluator(cfg)
 
-        hooks = build_hooks(cfg, self.optimizer, self.scheduler, self.checkpointer)
+        hooks = build_hooks(cfg, self.model, self.optimizer, self.scheduler, self.checkpointer)
         self.register_hooks(hooks)
 
     def resume_or_load(self, resume=True):

@@ -8,6 +8,7 @@ __pycache__/
 /data
 /pretrained_weights
 /output*
+/wandb
 
 # Build
 /build

@@ -70,7 +70,8 @@ setup(
         "Pillow>=6.0",
         "yacs>=0.1.6",
         "tabulate>=0.8",
-        "opencv-python>=4.4.0.42"
+        "opencv-python>=4.4.0.42",
+        "wandb>=0.10.8"
     ],
     ext_modules=get_extensions(),
     cmdclass={"build_ext": BuildExtension}
