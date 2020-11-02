@@ -8,7 +8,6 @@ class WandbWriter(HookBase):
     def __init__(self, cfg, model):
         self._period = cfg.TEST.WRITER_PERIOD
         self._save_period = cfg.SOLVER.CHECKPOINT_PERIOD
-        self._eval_period = cfg.TEST.EVAL_PERIOD
         self._output_dir = cfg.OUTPUT_DIR
         self._last_write = -1
 
@@ -16,10 +15,6 @@ class WandbWriter(HookBase):
         # wandb.run.name = cfg.OUTPUT_DIR
         wandb.config.update(cfg)
         # wandb.watch(model)
-
-        self._logger = defaultdict(float)
-        self._results = defaultdict(float)
-        self._images = defaultdict(list)
 
     def after_step(self):
         next_iter = self.trainer.iter + 1
@@ -38,23 +33,15 @@ class WandbWriter(HookBase):
         for k, (v, iteration) in storage.latest_with_smoothing(self._period).items():
             if iteration > self._last_write:
                 new_last_write = max(new_last_write, iteration)
-                if 'bbox' in k : self._results[k] = v
-                else:
-                    if 'loss' in k : k = f'Loss/{k}'
-                    elif ('time' in k) or ('second' in k) : k = f'Time/{k}'
-                    self._logger[k] = v
+                if 'loss' in k : k = f'Loss/{k}'
+                elif ('time' in k) or ('second' in k) : k = f'Time/{k}'
+                wandb.log({k : v}, step=iteration)
 
-        if (new_last_write + 1) % self._eval_period == 0:
-            wandb.log(self._results, step=new_last_write+1)
-
-        wandb.log(self._logger, step=new_last_write+1)
         self._last_write = new_last_write
 
         if len(storage._vis_data) >= 1:
             for img_name, img, step_num in storage._vis_data:
-                self._images[img_name] = (wandb.Image(img.transpose((1, 2, 0)), caption=f'step : {step_num}'))
-
-        wandb.log(self._images, step=new_last_write+1)
+                wandb.log({img_name : wandb.Image(img.transpose((1, 2, 0)), caption=f'step : {step_num}')}, step=self._last_write)
 
         # if len(storage._histograms) >= 1:
         #     for params in storage._histograms:
