@@ -5,6 +5,14 @@ from vistem.engine import launch, Trainer, default_argument_parser
 
 def main(args):
     cfg = get_cfg(args.config_file)
+    if args.mini_sgd > 1:
+        cfg.SOLVER.IMG_PER_BATCH = int(cfg.SOLVER.IMG_PER_BATCH / args.mini_sgd)
+        cfg.SOLVER.BASE_LR /= args.mini_sgd
+        cfg.SOLVER.MAX_ITER = int(cfg.SOLVER.MAX_ITER * args.mini_sgd)
+        cfg.SOLVER.WARMUP.ITERS = int(cfg.SOLVER.WARMUP.ITERS * args.mini_sgd)
+        cfg.SOLVER.CHECKPOINT_PERIOD = int(cfg.SOLVER.CHECKPOINT_PERIOD * args.mini_sgd)
+        cfg.TEST.EVAL_PERIOD = int(cfg.TEST.EVAL_PERIOD * args.mini_sgd)
+        cfg.SOLVER.SCHEDULER.STEPS = tuple([k * args.mini_sgd for k in cfg.SOLVER.SCHEDULER.STEPS])
 
     trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)

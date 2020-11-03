@@ -16,4 +16,7 @@ def default_argument_parser():
 
     parser.add_argument("--eval-only", action="store_true", help="perform evaluation only")
     parser.add_argument("--resume", action="store_true", help="resume training")
+
+    parser.add_argument("--mini-sgd", type=int, default=1)
+
     return parser

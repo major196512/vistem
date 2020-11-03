@@ -9,4 +9,4 @@ BACKBONE :
     INTERLAYER_MODE : 'Default'
     FUSE_MODE : 'SENet'
     REPEAT : 1
-    PLAN_CFG : 'h4k64v64e5'
+    PLAN_CFG : 'h8k64v64e5'
