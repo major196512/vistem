@@ -1,6 +1,11 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
 from collections import defaultdict
+
+from vistem.modeling.layers.ops import Conv2d
+from vistem.utils import weight_init
 
 from .inter_layer import InterLayer
 from .fuse import PLANFuse
@@ -25,13 +30,19 @@ class PLANBlock(nn.Module):
             fuse_channels[bot_feat] += inter_layer.bot_out_channels
 
         self.plan_fuses = []
+        self.convs = []
         for feat in in_features:
             in_channels = fuse_channels[feat]
             out_channel = out_channels[feat]
             
             plan_fuse = PLANFuse(fuse_mode, feat, in_channels, out_channel)
+            # conv = Conv2d(out_channel, out_channel, kernel_size=3, stride=1, padding=1, bias=False)
+            # weight_init.c2_msra_fill(conv)
+
             self.plan_fuses.append(plan_fuse)
+            # self.convs.append(conv)
             self.add_module(f'PLANFuse_{feat}', plan_fuse)
+            # self.add_module(f'Conv_{feat}', conv)
 
     def forward(self, x):
         inter_layer_results = defaultdict(list)
@@ -44,8 +55,10 @@ class PLANBlock(nn.Module):
             if plan_top is not None : inter_layer_results[top_feat].append(plan_top)
 
         results = defaultdict(list)
+        # for plan_fuse, plan_conv in zip(self.plan_fuses, self.convs):
         for plan_fuse in self.plan_fuses:
             feat = plan_fuse.feat
+            # results[feat] = F.relu(plan_conv(plan_fuse([x[feat], inter_layer_results[feat]])))
             results[feat] = plan_fuse([x[feat], inter_layer_results[feat]])
 
         return results

@@ -11,7 +11,7 @@ class WandbWriter(HookBase):
         self._output_dir = cfg.OUTPUT_DIR
         self._last_write = -1
 
-        wandb.init(project="vistem")
+        self.wandb = wandb.init(project="vistem")
         # wandb.run.name = cfg.OUTPUT_DIR
         wandb.config.update(cfg)
         # wandb.watch(model)
@@ -25,8 +25,8 @@ class WandbWriter(HookBase):
             wandb.save(os.path.join(self._output_dir, f'model_{int(self.trainer.iter):07d}.pth'))
 
     def after_train(self):
-        pass
-
+        self.wandb.finish()
+        
     def write(self):
         storage = self.trainer.storage
         new_last_write = self._last_write
