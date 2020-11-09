@@ -11,7 +11,7 @@ class WandbWriter(HookBase):
         self._output_dir = cfg.OUTPUT_DIR
         self._last_write = -1
 
-        self.wandb = wandb.init(project="vistem")
+        self.wandb = wandb.init(project=cfg.PROJECT)
         # wandb.run.name = cfg.OUTPUT_DIR
         wandb.config.update(cfg)
         # wandb.watch(model)

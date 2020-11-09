@@ -15,6 +15,7 @@ _C.WEIGHTS = ''
 _C.SEED = -1
 _C.DEVICE = 'cuda'
 _C.OUTPUT_DIR = './outputs'
+_C.PROJECT = 'VISTEM'
 
 _C.BACKBONE = _BACKBONE
 _C.META_ARCH = _META_ARCH
