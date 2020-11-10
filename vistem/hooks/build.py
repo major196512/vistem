@@ -25,6 +25,6 @@ def build_hooks(cfg, model, optimizer, scheduler, checkpointer):
         ret.append(IterTimer(cfg))
         ret.append(JSONWriter(cfg))
         ret.append(WandbWriter(cfg, model))
-        ret.append(TensorboardXWriter(cfg))
+        # ret.append(TensorboardXWriter(cfg))
 
     return ret

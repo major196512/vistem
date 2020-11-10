@@ -2,10 +2,8 @@ BASE_CFG : './configs/VOC-Detection/retinanet_R50_PANet.yaml'
 OUTPUT_DIR : './output_voc/plan/retinanet_R50_PANet'
 
 BACKBONE :
-  NAME : 'PLAN'
   PLAN :
     ENABLE : True
-    PYRAMID_NAME : 'PANet'
     INTERLAYER_MODE : 'Default'
     FUSE_MODE : 'SENet'
     REPEAT : 4

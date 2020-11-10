@@ -42,6 +42,7 @@ class WandbWriter(HookBase):
         if len(storage._vis_data) >= 1:
             for img_name, img, step_num in storage._vis_data:
                 wandb.log({img_name : wandb.Image(img.transpose((1, 2, 0)), caption=f'step : {step_num}')}, step=self._last_write)
+            storage.clear_images()
 
         # if len(storage._histograms) >= 1:
         #     for params in storage._histograms:

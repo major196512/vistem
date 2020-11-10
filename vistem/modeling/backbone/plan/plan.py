@@ -8,21 +8,21 @@ from .block import PLANBlock
 __all__ = ['PLANBase']
 
 class PLANBase(Backbone):
-    def __init__(self, pyramid, interlayer_mode, fuse_mode, repeat, plan_cfg):
+    def __init__(self, pyramidal, interlayer_mode, fuse_mode, repeat, plan_cfg):
         super().__init__()
 
-        in_features                 = pyramid.out_features
-        pyramid_shape               = pyramid.output_shape()
+        in_features                 = pyramidal.out_features
+        pyramidal_shape               = pyramidal.output_shape()
 
         self._out_features          = in_features
-        self._out_feature_strides   = {name : s.stride for name, s in pyramid_shape.items()}
-        self._out_feature_channels  = {name : s.channels for name, s in pyramid_shape.items()}
-        self._size_divisibility     = max([p.stride for p in pyramid_shape.values()])
+        self._out_feature_strides   = {name : s.stride for name, s in pyramidal_shape.items()}
+        self._out_feature_channels  = {name : s.channels for name, s in pyramidal_shape.items()}
+        self._size_divisibility     = max([p.stride for p in pyramidal_shape.values()])
 
         in_channels = self._out_feature_channels
         assert (len(in_channels) == len(in_features)) and (all(k in in_channels for k in in_features))
 
-        self.pyramid = pyramid
+        self.pyramidal = pyramidal
 
         out_channels = self._out_feature_channels
         self.plan_blocks = []
@@ -32,7 +32,7 @@ class PLANBase(Backbone):
             self.add_module(f'PLANBlock{idx}', plan_block)
 
     def forward(self, x):
-        results = self.pyramid(x)
+        results = self.pyramidal(x)
 
         for plan_block in self.plan_blocks:
             results = plan_block(results)

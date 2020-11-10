@@ -1,0 +1,1 @@
+python tools/train.py --config-file ./configs/dev.yaml --num-gpu 8

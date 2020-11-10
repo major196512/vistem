@@ -19,8 +19,14 @@ def build_backbone(cfg, input_shape=None):
     if input_shape is None:
         input_shape = ShapeSpec(channels=len(cfg.INPUT.PIXEL_MEAN))
 
-    backbone = cfg.BACKBONE.NAME
-    backbone = BACKBONE_REGISTRY.get(backbone)(cfg, input_shape)
+    if 'PLAN' in cfg.BACKBONE:
+        pyramidal = cfg.BACKBONE.NAME
+        pyramidal = BACKBONE_REGISTRY.get(pyramidal)(cfg, input_shape)
+        backbone = BACKBONE_REGISTRY.get('PLAN')(cfg, input_shape, pyramidal)
+
+    else:
+        backbone = cfg.BACKBONE.NAME
+        backbone = BACKBONE_REGISTRY.get(backbone)(cfg, input_shape)
 
     assert isinstance(backbone, Backbone)
     return backbone
