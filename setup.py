@@ -71,6 +71,8 @@ setup(
         "yacs>=0.1.6",
         "tabulate>=0.8",
         "opencv-python>=4.4.0.42",
+        "pycocotools>=2.0.2",
+        "cloudpickle>=1.6.0",
         "wandb>=0.10.8"
     ],
     ext_modules=get_extensions(),
