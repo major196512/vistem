@@ -1,4 +1,4 @@
 BASE_CFG : './configs/VOC-Detection/faster_R50_FPN.yaml'
 DATA_CFG : './configs/DataConfig/VOC-Detection.yaml'
 
-WEIGHTS : './output_voc/test/model_final.pth'
+WEIGHTS : './model_final.pth'

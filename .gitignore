@@ -17,3 +17,4 @@ __pycache__/
 
 # develop config files
 /configs/dev*
+/visualize
