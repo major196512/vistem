@@ -4,6 +4,5 @@ _PLAN = CN()
 _PLAN.ENABLE = False
 
 _PLAN.INTERLAYER_MODE = 'Default'
-_PLAN.FUSE_MODE = 'SENet'
-_PLAN.REPEAT = 1
-_PLAN.PLAN_CFG = 'h8k64v64e3'
+_PLAN.FUSE_MODE = 'Summation'
+_PLAN.PLAN_CFG = 'h4k64v64e5r2'

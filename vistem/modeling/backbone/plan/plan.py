@@ -1,4 +1,5 @@
 import torch
+import re
 
 from vistem.modeling.backbone import Backbone
 from vistem.structures import ShapeSpec
@@ -8,7 +9,7 @@ from .block import PLANBlock
 __all__ = ['PLANBase']
 
 class PLANBase(Backbone):
-    def __init__(self, pyramidal, interlayer_mode, fuse_mode, repeat, plan_cfg):
+    def __init__(self, pyramidal, interlayer_mode, fuse_mode, plan_cfg):
         super().__init__()
 
         in_features                 = pyramidal.out_features
@@ -24,6 +25,7 @@ class PLANBase(Backbone):
 
         self.pyramidal = pyramidal
 
+        repeat = int(re.compile('r[0-9]+').findall(plan_cfg)[0][1:])
         out_channels = self._out_feature_channels
         self.plan_blocks = []
         for idx in range(repeat):

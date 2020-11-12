@@ -12,8 +12,6 @@ class Fuse_Summation(nn.Module):
         self.feat = feat
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.conv_block = Conv2d(out_channels, out_channels, stride=1, kernel_size=3, padding=1, bias=True)
-        weight_init.c2_msra_fill(self.conv_block)
 
     def forward(self, x):
         pyramid, inter_features = x
@@ -21,6 +19,6 @@ class Fuse_Summation(nn.Module):
         ret = inter_features[0]
         for feat in inter_features[1:]:
             ret += feat
+        ret += pyramid
         
-        # return F.relu(self.conv_block(pyramid + ret))
-        return self.conv_block(pyramid + ret)
+        return ret
