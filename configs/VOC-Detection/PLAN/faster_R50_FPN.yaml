@@ -6,5 +6,4 @@ BACKBONE :
     ENABLE : True
     INTERLAYER_MODE : 'Default'
     FUSE_MODE : 'Summation'
-    REPEAT : 2
-    PLAN_CFG : 'h4k64v64e3'
+    PLAN_CFG : 'h4k64v64e5r2'

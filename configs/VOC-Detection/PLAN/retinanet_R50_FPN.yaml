@@ -5,6 +5,5 @@ BACKBONE :
   PLAN :
     ENABLE : True
     INTERLAYER_MODE : 'Default'
-    FUSE_MODE : 'SENet'
-    REPEAT : 4
-    PLAN_CFG : 'h4k64v64e3'
+    FUSE_MODE : 'Summation'
+    PLAN_CFG : 'h4k64v64e5r2'
