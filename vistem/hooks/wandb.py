@@ -1,5 +1,6 @@
 from collections import defaultdict
 import os
+import shutil
 import wandb
 
 from .trainer import HookBase
@@ -27,6 +28,7 @@ class WandbWriter(HookBase):
     def after_train(self):
         wandb.save(os.path.join(self._output_dir, f'model_final.pth'))
         self.wandb.finish()
+        shutil.rmtree('./wandb')
         
     def write(self):
         storage = self.trainer.storage
