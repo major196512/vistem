@@ -25,6 +25,7 @@ class WandbWriter(HookBase):
             wandb.save(os.path.join(self._output_dir, f'model_{int(self.trainer.iter):07d}.pth'))
 
     def after_train(self):
+        wandb.save(os.path.join(self._output_dir, f'model_final.pth'))
         self.wandb.finish()
         
     def write(self):
