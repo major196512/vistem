@@ -21,7 +21,7 @@ class WandbWriter(HookBase):
         if next_iter % self._period == 0:
             self.write()
 
-        if next_iter % self._save_period == 0:
+        if self._save_period > 0 and next_iter % self._save_period == 0:
             wandb.save(os.path.join(self._output_dir, f'model_{int(self.trainer.iter):07d}.pth'))
 
     def after_train(self):

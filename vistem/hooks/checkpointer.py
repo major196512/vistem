@@ -16,6 +16,7 @@ class PeriodicCheckpointer(HookBase):
         self.max_iter = self.trainer.max_iter
 
     def after_step(self):
+        if self.period == 0 : return
         iteration = int(self.trainer.iter)
         if (iteration + 1) % self.period == 0 :
             self.save_checkpoint(iteration, save_name=f"model_{iteration:07d}")
