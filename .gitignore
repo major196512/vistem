@@ -13,7 +13,7 @@ __pycache__/
 # Build
 /build
 /vistem.egg-info
-/vistem/ext.cpython-36m-x86_64-linux-gnu.so
+/vistem/ext.*.so
 
 # develop config files
 /configs/dev*
